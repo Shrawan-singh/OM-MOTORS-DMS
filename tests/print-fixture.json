@@ -1,5 +1,5 @@
 {
-  "id": "f3261532-c370-45d1-805c-c4157b8e777c",
+  "id": "2a9f4aee-2726-40e1-a325-db48c8848aed",
   "kind": "invoice",
   "items": [
     {
@@ -10,10 +10,10 @@
       "hsnCode": "8507",
       "taxable": 29000,
       "discount": 1000,
-      "productId": "a7d64eaf-c3b7-41b8-b692-a2534be34c3d",
+      "productId": "68e22989-f16b-4cc2-9ae3-7cf2ae95dc9a",
       "unitPrice": 10000,
       "gstRatePct": 18,
-      "inventoryId": "52dd1894-f8a9-446a-85ae-e0f311f2a9c2"
+      "inventoryId": "ccfd4e50-b8f8-4bfe-a8d2-bf629d6fbd0a"
     },
     {
       "qty": 1,
@@ -34,12 +34,12 @@
   "number": "CUSTOM-BILL-9",
   "subtotal": 29500,
   "tax_mode": "cgst_sgst",
-  "created_at": "2026-09-13T11:25:33.646+05:00",
+  "created_at": "2026-09-13T17:04:33.878+05:00",
   "created_by": "00000000-0000-4000-8000-000000000001",
   "tax_amount": 5245,
-  "updated_at": "2026-09-13T11:25:33.674+05:00",
+  "updated_at": "2026-09-13T17:04:33.903+05:00",
   "amount_paid": 1000,
-  "customer_id": "b85a08bc-3433-4fb3-b9c1-8ae128653b9b",
+  "customer_id": "f5c235a9-f0aa-4fce-9347-6a0e688ce75b",
   "valid_until": null,
   "document_date": "2026-09-13",
   "seller_snapshot": {
@@ -59,5 +59,5 @@
     "address": null,
     "village": "Test location"
   },
-  "source_quotation_id": "e0181512-b91e-433b-8c5a-c478c0c9bcc9"
+  "source_quotation_id": "f0b98646-8f75-4e43-aa4b-891cf9c55f0d"
 }

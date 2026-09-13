@@ -1,4 +1,4 @@
-export type StaffRole = 'owner' | 'salesperson' | 'inventory' | 'mechanic' | 'accountant';
+export type StaffRole = 'owner' | 'manager' | 'service_manager' | 'pdi' | 'warranty' | 'salesperson' | 'inventory' | 'mechanic' | 'accountant';
 
 export type VehicleCategory = 'tractor' | 'e_rickshaw' | 'cng_rickshaw' | 'diesel_rickshaw';
 

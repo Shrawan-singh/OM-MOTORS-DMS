@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { QuickAddCustomerModal } from '@/components/customers/QuickAddCustomerModal';
 import { Customer } from '@/types';
+import { CustomerHistory } from '@/components/workshop/CustomerHistory';
 
 export default function CustomersPage() {
   const { can } = useAuth();
@@ -201,6 +202,7 @@ export default function CustomersPage() {
               <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">{selectedCustomer.name}</h3>
+{can("service.read")&&<><Link className="ws-history-link" href={`/service?customer=${selectedCustomer.id}`}>Open workshop →</Link><CustomerHistory id={selectedCustomer.id}/></>}
                   <div className="text-xs text-slate-500 mt-0.5">📞 {selectedCustomer.phone}</div>
                   <div className="text-xs text-slate-500">📍 Village: {selectedCustomer.village}</div>
                 </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import './workshop.css';
 import { DealerStoreProvider } from '@/lib/store/dealer-store';
 import { AppShell } from '@/components/layout/AppShell';
 import { AuthProvider } from '@/lib/auth/provider';

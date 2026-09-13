@@ -23,10 +23,10 @@ export function DealerStoreProvider({children}:{children:React.ReactNode}){
     fetchRows('catalog_products',can('catalogue.read')||can('quotations.write')||can('invoices.write')||can('inventory.read')),
     fetchRows('customers',can('customers.read')),fetchRows('billing_documents',can('quotations.read')||can('invoices.read')),
     fetchRows('business_profile',true),fetchRows('inventory',can('inventory.read')),
-    fetchRows('billing_payments',can('invoices.read')),fetchRows('service_jobs',can('service.read')),fetchRows('pdi_checks',can('service.read')),
-    fetchRows('warranties',can('service.read')),fetchRows('customer_timeline',can('customers.read')),fetchRows('stock_movements',can('inventory.read')),
+    fetchRows('billing_payments',can('invoices.read')),Promise.resolve([] as Row[]),Promise.resolve([] as Row[]),
+    Promise.resolve([] as Row[]),fetchRows('customer_timeline',can('customers.read')),fetchRows('stock_movements',can('inventory.read')),
     fetchRows('vehicles',can('inventory.read'))]);
-   next.products=products as Product[];next.documents=(documents as BillingDocument[]).sort((a,b)=>b.created_at.localeCompare(a.created_at));next.profile=(profile[0] as BusinessProfile)||null;
+   next.products=products as Product[];next.documents=(documents as (BillingDocument & {cancelled_at?:string})[]).filter(d=>!d.cancelled_at).sort((a,b)=>b.created_at.localeCompare(a.created_at));next.profile=(profile[0] as BusinessProfile)||null;
    next.customers=customers.map(c=>({id:c.id,name:c.name,phone:c.phone,village:c.village,address:c.address,requirementNotes:c.notes,createdAt:c.created_at}));
    next.inventory=inventory.map(i=>({id:i.id,itemType:i.item_type,itemId:i.item_id,itemName:i.item_name,skuOrCode:i.sku_or_code||'',qtyAvailable:i.qty_available,qtyReserved:i.qty_reserved,minStockThreshold:i.min_stock_threshold,unitPrice:products.find(p=>p.id===i.item_id)?.selling_price??0}));
    const items=(d:BillingDocument)=>d.items.map(i=>({itemType:'part' as ItemType,itemId:i.productId||'',name:i.name,qty:i.qty,unitPrice:i.unitPrice,discount:i.discount,gstRatePct:i.gstRatePct,total:i.total,codeOrSerial:i.hsnCode}));

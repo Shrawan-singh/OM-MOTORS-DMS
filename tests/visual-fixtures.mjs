@@ -1,0 +1,17 @@
+// Local-only static visual fixtures. No application route or authentication bypass.
+import fs from 'node:fs';import path from 'node:path';import {createRequire} from 'node:module';import http from 'node:http';
+const require=createRequire(import.meta.url);const ts=require('typescript');const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');
+const fixture=JSON.parse(fs.readFileSync('tests/print-fixture.json','utf8'));
+const products=JSON.parse(fs.readFileSync('docs/verified-products.json','utf8')).map((p,i)=>({...p,id:`test-${i}`}));
+const state={products,documents:[fixture],customers:[{id:fixture.customer_id,...fixture.customer_snapshot}],inventory:[],profile:fixture.seller_snapshot,loading:false,error:'',payments:[],quickAddCustomer:()=>{},saveDocument:()=>{},saveProfile:()=>{}};
+const cache=new Map();function load(file){file=path.resolve(file);if(cache.has(file))return cache.get(file);const mod={exports:{}};const compiled=ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2020,esModuleInterop:true}}).outputText;
+ const customRequire=name=>{if(name==='@/lib/store/dealer-store')return {useDealerStore:()=>state};if(name==='@/lib/auth/provider')return {useAuth:()=>({role:'owner',email:'visual-test@example.test',can:()=>true})};if(name==='@/lib/supabase/client')return {supabase:null};if(name==='next/navigation')return {usePathname:()=>'/invoices',useSearchParams:()=>new URLSearchParams(),useRouter:()=>({push:()=>{}})};if(name.startsWith('@/')||name.startsWith('.')){const base=name.startsWith('@/')?path.resolve('src',name.slice(2)):path.resolve(path.dirname(file),name);for(const ext of ['.tsx','.ts','.js'])if(fs.existsSync(base+ext))return load(base+ext);}return require(name)};
+ new Function('require','module','exports',compiled)(customRequire,mod,mod.exports);cache.set(file,mod.exports);return mod.exports;
+}
+const {DocumentSheet}=load('src/components/billing/DocumentSheet.tsx');const {DocumentEditor}=load('src/components/billing/DocumentEditor.tsx');const {Navbar}=load('src/components/layout/Navbar.tsx');const {DocumentList}=load('src/components/billing/DocumentList.tsx');
+const css=fs.readdirSync('.next/static/css').filter(f=>f.endsWith('.css')).map(f=>fs.readFileSync('.next/static/css/'+f,'utf8')).join('\n');
+const html=body=>'<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>OM Motors · isolated visual test</title><style>'+css+'</style></head><body>'+renderToStaticMarkup(body)+'</body></html>';
+const shell=component=>React.createElement('div',{className:'workspace'},React.createElement(Navbar,{onOpenSearch:()=>{}}),React.createElement('main',{className:'workspace-main'},component));
+const pages={'/print':html(React.createElement('div',{className:'document-frame'},React.createElement(DocumentSheet,{doc:fixture}))),'/editor':html(shell(React.createElement(DocumentEditor,{kind:'invoice'}))),'/list':html(shell(React.createElement(DocumentList,{kind:'invoice'})))};
+const server=http.createServer((req,res)=>{res.writeHead(pages[req.url]?200:404,{'Content-Type':'text/html'});res.end(pages[req.url]||'Not found')});server.listen(3100,'127.0.0.1',()=>console.log('Isolated visual fixtures on http://127.0.0.1:3100/print, /editor and /list. No live data or app auth bypass.'));
+

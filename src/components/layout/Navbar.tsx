@@ -1,0 +1,12 @@
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Tractor, LayoutDashboard, Users, Package, FileText, Receipt, Wrench, Search, ShieldCheck, LogOut, BookOpen } from 'lucide-react';
+import { useAuth } from '@/lib/auth/provider';
+import { roleLabels } from '@/lib/auth/permissions';
+import { supabase } from '@/lib/supabase/client';
+export function Navbar({ onOpenSearch }: { onOpenSearch: () => void }) {
+ const path = usePathname(); const { email, role, can } = useAuth();
+ const links = [{ href:'/', label:'Overview', icon:LayoutDashboard, permission:'dashboard.read' },{href:'/catalogue',label:'Product catalogue',icon:BookOpen,permission:'catalogue.read'},{href:'/customers',label:'Customers',icon:Users,permission:'customers.read'},{href:'/inventory',label:'Inventory',icon:Package,permission:'inventory.read'},{href:'/quotations',label:'Quotations',icon:FileText,permission:'quotations.read'},{href:'/invoices',label:'Invoices & payments',icon:Receipt,permission:'invoices.read'},{href:'/service',label:'Service & PDI',icon:Wrench,permission:'service.read'}];
+ return <><aside className="app-sidebar"><Link href="/" className="sidebar-brand"><span><Tractor size={24}/></span><div>OM MOTORS<small>DEALERSHIP WORKSPACE</small></div></Link><p className="nav-caption">WORKSPACE</p><nav>{links.filter(l=>can(l.permission)).map(l=><Link key={l.href} href={l.href} className={path===l.href || (l.href!=='/'&&path.startsWith(l.href))?'active':''}><l.icon size={18}/>{l.label}</Link>)}</nav>{role==='owner'&&<><p className="nav-caption">ADMINISTRATION</p><nav><Link href="/admin" className={path==='/admin'?'active':''}><ShieldCheck size={18}/>Team & permissions</Link></nav></>}<div className="sidebar-bottom"><span className="avatar">{email.slice(0,1).toUpperCase()||'O'}</span><div><strong>{roleLabels[role||'']||'Staff member'}</strong><small title={email}>{email}</small></div><button aria-label="Sign out" onClick={async()=>{await supabase?.auth.signOut();window.location.assign('/login')}}><LogOut size={17}/></button></div></aside><header className="workspace-topbar"><span>Workspace <span className="text-slate-300 mx-3">/</span><strong>{path==='/admin'?'Team & permissions':links.find(l=>l.href===path)?.label||'Dealership'}</strong></span><button onClick={onOpenSearch} className="search-trigger"><Search size={16}/><span>Search your workspace</span><kbd>Ctrl K</kbd></button></header></>;
+}

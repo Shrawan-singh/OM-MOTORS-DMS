@@ -1,0 +1,63 @@
+{
+  "id": "f3261532-c370-45d1-805c-c4157b8e777c",
+  "kind": "invoice",
+  "items": [
+    {
+      "qty": 3,
+      "tax": 5220,
+      "name": "Manually renamed battery",
+      "total": 34220,
+      "hsnCode": "8507",
+      "taxable": 29000,
+      "discount": 1000,
+      "productId": "a7d64eaf-c3b7-41b8-b692-a2534be34c3d",
+      "unitPrice": 10000,
+      "gstRatePct": 18,
+      "inventoryId": "52dd1894-f8a9-446a-85ae-e0f311f2a9c2"
+    },
+    {
+      "qty": 1,
+      "tax": 25,
+      "name": "Fitting service",
+      "total": 525,
+      "hsnCode": "",
+      "taxable": 500,
+      "discount": 0,
+      "productId": null,
+      "unitPrice": 500,
+      "gstRatePct": 5,
+      "inventoryId": null
+    }
+  ],
+  "notes": "Test document",
+  "total": 34745,
+  "number": "CUSTOM-BILL-9",
+  "subtotal": 29500,
+  "tax_mode": "cgst_sgst",
+  "created_at": "2026-09-13T11:25:33.646+05:00",
+  "created_by": "00000000-0000-4000-8000-000000000001",
+  "tax_amount": 5245,
+  "updated_at": "2026-09-13T11:25:33.674+05:00",
+  "amount_paid": 1000,
+  "customer_id": "b85a08bc-3433-4fb3-b9c1-8ae128653b9b",
+  "valid_until": null,
+  "document_date": "2026-09-13",
+  "seller_snapshot": {
+    "id": true,
+    "name": "OM Motors",
+    "email": "",
+    "gstin": "",
+    "phone": "9999999999",
+    "terms": "Test terms only",
+    "address": "Test dealership address",
+    "bank_details": ""
+  },
+  "customer_snapshot": {
+    "name": "Test customer",
+    "gstin": null,
+    "phone": "9999999999",
+    "address": null,
+    "village": "Test location"
+  },
+  "source_quotation_id": "e0181512-b91e-433b-8c5a-c478c0c9bcc9"
+}

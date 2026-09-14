@@ -35,6 +35,9 @@ export interface Customer {
   aadhaarLast4?: string;
   panNo?: string;
   requirementNotes?: string;
+  creditLimit?: number;
+  paymentTermsDays?: number;
+  collectionPriority?: 'low' | 'normal' | 'high' | 'critical';
   createdAt: string;
 }
 
@@ -187,6 +190,7 @@ export interface Invoice {
   totalAmount: number;
   amountPaid: number;
   balanceDue: number;
+  dueDate?: string;
   items: QuotationItem[];
   createdAt: string;
 }

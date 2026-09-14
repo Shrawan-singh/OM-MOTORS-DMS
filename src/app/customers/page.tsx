@@ -15,11 +15,16 @@ import {
   ChevronRight,
   ShieldCheck,
   Receipt,
-  X
+  X,
+  MessageSquare,
+  CreditCard
 } from 'lucide-react';
 import { QuickAddCustomerModal } from '@/components/customers/QuickAddCustomerModal';
 import { Customer } from '@/types';
 import { CustomerHistory } from '@/components/workshop/CustomerHistory';
+import { WhatsAppReminderModal } from '@/components/receivables/WhatsAppReminderModal';
+import { CustomerLedgerModal } from '@/components/receivables/CustomerLedgerModal';
+import { money } from '@/lib/billing/types';
 
 export default function CustomersPage() {
   const { can } = useAuth();
@@ -27,6 +32,8 @@ export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
+  const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
+  const [isLedgerOpen, setIsLedgerOpen] = useState(false);
 
   // Filter customers by search term
   const filteredCustomers = useMemo(() => {
@@ -58,6 +65,11 @@ export default function CustomersPage() {
     if (!selectedCustomer) return [];
     return warranties.filter((w) => w.customerId === selectedCustomer.id);
   }, [warranties, selectedCustomer]);
+
+  // Selected customer total balance due
+  const customerTotalDue = useMemo(() => {
+    return customerInvoices.reduce((sum, inv) => sum + (inv.balanceDue || 0), 0);
+  }, [customerInvoices]);
 
   return (
     <div className="space-y-6">
@@ -230,6 +242,39 @@ export default function CustomersPage() {
                 </a>
               </div>
 
+              {/* Collections & Statement Actions */}
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-700">Total Outstanding:</span>
+                  <strong className={`font-mono ${customerTotalDue > 0 ? 'text-amber-700 font-bold' : 'text-emerald-700'}`}>
+                    {money(customerTotalDue)}
+                  </strong>
+                </div>
+                {selectedCustomer.creditLimit ? (
+                  <p className="text-[11px] text-slate-500">
+                    Credit Limit: {money(selectedCustomer.creditLimit)} · Terms: {selectedCustomer.paymentTermsDays || 15} days
+                  </p>
+                ) : null}
+                <div className="flex items-center gap-2 pt-1">
+                  {customerTotalDue > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsWhatsAppOpen(true)}
+                      className="flex-1 py-1.5 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-1 shadow-xs transition-colors"
+                    >
+                      <MessageSquare size={13} /> WhatsApp
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsLedgerOpen(true)}
+                    className="flex-1 py-1.5 px-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold inline-flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <FileText size={13} /> Statement
+                  </button>
+                </div>
+              </div>
+
               {/* Invoices & Purchase History */}
               <div>
                 <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -325,6 +370,26 @@ export default function CustomersPage() {
         isOpen={isQuickAddOpen}
         onClose={() => setIsQuickAddOpen(false)}
       />
+
+      {isWhatsAppOpen && selectedCustomer && (
+        <WhatsAppReminderModal
+          customer={{
+            id: selectedCustomer.id,
+            name: selectedCustomer.name,
+            phone: selectedCustomer.phone,
+            village: selectedCustomer.village,
+          }}
+          outstandingAmount={customerTotalDue}
+          onClose={() => setIsWhatsAppOpen(false)}
+        />
+      )}
+
+      {isLedgerOpen && selectedCustomer && (
+        <CustomerLedgerModal
+          customerId={selectedCustomer.id}
+          onClose={() => setIsLedgerOpen(false)}
+        />
+      )}
 
     </div>
   );

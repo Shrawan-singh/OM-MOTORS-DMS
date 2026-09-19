@@ -290,6 +290,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -390,6 +391,25 @@ Use the above as a cross-check, not as the manufacturer's primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -405,6 +425,7 @@ Use the above as a cross-check, not as the manufacturer's primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1101,6 +1122,7 @@ At the date of this research, the strongest verified manufacturer-backed data in
 - **New Holland 3600 TX Super Heritage Edition:** 47 HP engine record, 1800 kg lift, 2WD/4WD, EPTRA PTO, FPT engine.
 - **New Holland 3630 family:** current Super/Super Plus+/Special Edition family with FPT S8000, Sensomatic24, 1700/2000 kg lifting options and 2WD/4WD variants depending model.
 - **CityLife XV-850 family:** D+4 passenger, approx. 400 kg load capacity, 100–135 Ah lead-acid range, 2770 x 985 x 1730 mm, 2100 mm wheelbase.
+- **CityLife 6P Ride:** 7 persons seating, Lithium-ion battery, BLDC motor, 120 km claimed range, 30 km/h top speed, 4 hours charging time, 3 years dealer-listed battery warranty (official brochure required).
 - **Greaves Eltra City XTRA:** 170 km true range, 60 km/h Power Mode, 10.75 kWh LFP, 9.5 kW PMS motor, 5-year battery warranty.
 - **Greaves Teja Super City EX:** 395 cc water-cooled CNG engine, 7.25 kW, 24.5 Nm, 39 km/kg claim, 4F+1R, 59 km/h, 334 kg payload, 36 months/1 lakh km warranty.
 - **Greaves D435 passenger family:** 435 cc diesel, 5.7 kW, 19 Nm, 4F+1R, 10.5 L tank, 55 km/h, 330 kg payload in the published passenger record.

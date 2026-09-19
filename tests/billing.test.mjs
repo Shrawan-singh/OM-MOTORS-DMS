@@ -10,7 +10,7 @@ const asUser=async id=>db.exec(`RESET ROLE; SET ROLE authenticated; SELECT set_c
 const q=async(sql,params=[]) => (await db.query(sql,params)).rows;
 const save=async payload=>(await q('SELECT to_jsonb(public.app_save_document($1::jsonb)) doc',[JSON.stringify(payload)]))[0].doc;
 await asUser(admin);
-assert.equal((await q('SELECT * FROM public.catalog_products')).length,59);
+assert.equal((await q('SELECT * FROM public.catalog_products')).length,60);
 assert.equal((await q('SELECT * FROM public.catalog_products WHERE selling_price IS NOT NULL OR gst_rate_pct IS NOT NULL')).length,0);
 assert.equal((await q('SELECT * FROM public.billing_documents')).length,0);
 const product=(await q("SELECT * FROM public.catalog_products WHERE model_name='OPERT13507'"))[0];
@@ -53,4 +53,4 @@ await asUser(unknown);assert.equal((await q('SELECT * FROM public.billing_docume
 await db.exec('RESET ROLE; SET ROLE anon');await assert.rejects(q('SELECT * FROM public.billing_documents'),/permission denied/);
 // Saved test output is outside application imports, used only for print layout QA.
 writeFileSync('tests/print-fixture.json',JSON.stringify(paid,null,2));
-await db.close();console.log('PASS: 59 sourced products, empty operations, mixed GST, custom names/numbers, duplicate rejection, stock transactions and rollback, edit deltas, stale edits, payment retries/limits, and role enforcement.');
+await db.close();console.log('PASS: 60 sourced products, empty operations, mixed GST, custom names/numbers, duplicate rejection, stock transactions and rollback, edit deltas, stale edits, payment retries/limits, and role enforcement.');

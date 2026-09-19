@@ -831,6 +831,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -931,6 +932,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -946,6 +966,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -965,6 +986,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -1065,6 +1087,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -1080,6 +1121,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1099,6 +1141,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -1199,6 +1242,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -1214,6 +1276,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1233,6 +1296,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -1333,6 +1397,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -1348,6 +1431,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1367,6 +1451,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -1467,6 +1552,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -1482,6 +1586,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1501,6 +1606,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -1601,6 +1707,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -1616,6 +1741,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1635,6 +1761,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -1735,6 +1862,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -1750,6 +1896,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1769,6 +1916,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -1869,6 +2017,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -1884,6 +2051,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -1903,6 +2071,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -2003,6 +2172,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -2018,6 +2206,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -2037,6 +2226,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -2137,6 +2327,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -2152,6 +2361,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -2171,6 +2381,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -2271,6 +2482,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -2286,6 +2516,7 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
@@ -2305,6 +2536,7 @@ Official site: https://www.citylifeev.com/
 - Standard (XV-850)
 - Standard+ (XV-850)
 - School Type (XV-850)
+- 6P Ride (Dealer listing)
 
 CityLife also lists electric loaders:
 - Loader (XV-MAX)
@@ -2405,6 +2637,25 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Controller: **50 A, 24 MOSFETs**
 - Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
 
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
 ### Sources
 - CityLife about/company: https://www.citylifeev.com/about
 - Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
@@ -2420,12 +2671,168 @@ Use the above as a cross-check, not as the manufacturer''s primary record.
 - Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
 - Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
 - Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
 
 Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
 
 ---
 
 ','Model listing only. Loader seating/payload claims in source require exact-variant confirmation.'),
+('CITYLIFE_6P_RIDE','CityLife','6P Ride','6P Ride','','e_rickshaw','active','{"Seating":"7 persons","Battery type":"Lithium-ion","Motor":"BLDC","Claimed range":"120 km","Top speed":"30 km/h","Charging time":"4 hours","Battery warranty":"3 years (dealer listing)","Battery capacity":"Not sufficiently verified"}','["https://www.citylifeev.com/electric-vehicles-erickshaw","https://www.citylifeev.com/","https://www.citylifeev.com/about","https://www.citylifeev.com/butterfly2020","https://www.citylifeev.com/li-prima2020","https://www.citylifeev.com/butterflydelux","https://www.citylifeev.com/butterflysuperdeluxe","https://www.citylifeev.com/standard","https://www.citylifeev.com/standardplus","https://www.citylifeev.com/schooltype","https://www.citylifeev.com/xv-maxclosedbody","https://trucks.cardekho.com/en/trucks/city-life/li-prima-2022/specifications","https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications","https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications","https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications"]','User-supplied research pack; manufacturer and secondary claims distinguished in source excerpt','2026-09-12','Dealer-listed specifications; official brochure required','CITY LIFE ELECTRIC RICKSHAWS
+
+Manufacturer/brand: **CityLife / Dilli Electric Auto**
+Official site: https://www.citylifeev.com/
+
+## 2.1 Official model range currently exposed on CityLife site
+- XV-850
+- LI-PRIMA 2022
+- Butterfly Deluxe (XV-850)
+- Butterfly Super Deluxe (XV-850)
+- Standard (XV-850)
+- Standard+ (XV-850)
+- School Type (XV-850)
+- 6P Ride (Dealer listing)
+
+CityLife also lists electric loaders:
+- Loader (XV-MAX)
+- Open Body Loader (XV-MAX)
+- Closed Body Loader (LI-MAX)
+- Closed Body Loader (XV-MAX)
+- Garbage Loader (XV MAX)
+
+## 2.2 Common official XV-850 / LI-PRIMA family fields
+For the XV-850 and LI-PRIMA product pages, CityLife publishes:
+- Seating capacity: **Driver + 4 passenger**
+- Approx load capacity: **400 kg**
+- Battery: **Lead acid**
+- Capacity range: **100 Ah–135 Ah**
+- Front tyre size: **3-12 / 90-90-12 / 3.75-12** (site repeats this field as “Front” for both axle positions)
+- Length: **2770 mm**
+- Width: **985 mm**
+- Height: **1730 mm**
+- Wheelbase: **2100 mm**
+- Ground clearance: **200 mm**
+- Maximum gradeability: **≤10** (the site omits a unit; store exactly as published and do not assume degrees/percent)
+- Turning radius: **2.4 m**
+- Front suspension: **Telescopic hydraulic shockers**
+- Rear suspension: **Double movement leaf spring with hydraulic shockers**
+- Controller: **50 A, 24 MOSFETs**
+- Controller voltage: the site says “48W”, which is almost certainly a publishing/typing issue; **do not convert this to 48 V in the master database without dealer/manufacturer confirmation**.
+
+## 2.3 LI-PRIMA 2022 — independent specification cross-check
+A current third-party specification record lists:
+- Battery system: **48 V**
+- Battery capacity: **135 Ah**
+- Range: **90–100 km**
+- Charging: **6–8 hours**
+- Max speed: **25 km/h**
+- GVW: **380 kg**
+- Wheelbase: **2100 mm**
+- Overall size: **2770 x 985 x 1730 mm**
+- Ground clearance: **200 mm**
+- Turning radius: **2400 mm**
+- Motor: Electric motor
+- Gearbox: Automatic, **1 forward + 1 reverse**
+- Seating: **D+4**
+- Brakes: Drum
+
+Use the above as a cross-check, not as the manufacturer''s primary record.
+
+## 2.4 CityLife Standard XV-850 — third-party detailed cross-check
+- Battery capacity: **100 Ah**
+- Range: **60–80 km**
+- Max speed: **23 km/h**
+- Motor power listed by one portal: **850 W**
+- Charging: **5–7 hours**
+- GVW: **400 kg**
+- Wheelbase: **2100 mm**
+- Size: **2770 x 985 x 1730 mm**
+- Ground clearance: **200 mm**
+- Seating: **D+4**
+
+## 2.5 CityLife Standard+ XV-850 — third-party detailed cross-check
+- Battery capacity: **100 Ah**
+- Range: **70–100 km**
+- Max speed: **23 km/h**
+- Charging: **6–8 hours**
+- GVW: **400 kg**
+- Wheelbase: **2100 mm**
+- Size: **2770 x 985 x 1730 mm**
+- Ground clearance: **200 mm**
+- Seating: **D+4**
+
+## 2.6 CityLife School Type XV-850 — third-party detailed cross-check
+- Battery capacity: **100 Ah**
+- Range: **70–80 km**
+- Max speed: **23 km/h**
+- Max torque listed: **45 Nm**
+- Charging time: **3–4 hours**
+- GVW: **400 kg**
+- Wheelbase: **2100 mm**
+- Size: **2770 x 985 x 1730 mm**
+- Ground clearance: **200 mm**
+- Seating: **D+4**
+
+## 2.7 CityLife Closed Body Loader (LI-MAX) — official page
+- Seating: **Driver + 4 Passenger**
+- Approx load capacity: **400 kg**
+- Battery: **Lead acid**
+- Battery capacity range: **100–135 Ah**
+- Front brakes: Lever-operated drum
+- Rear brakes: Brake-paddle-operated drum
+- Parking brake: Mechanical hand lever
+- Front tyre: **3-12 / 90-90-12 / 3.75-12**
+- Dimensions: **2770 x 985 x 1730 mm**
+- Wheelbase: **2100 mm**
+- Ground clearance: **200 mm**
+- Max gradeability: **≤10** (unit omitted by manufacturer page)
+- Turning radius: **2.4 m**
+- Front suspension: Telescopic hydraulic shockers
+- Rear suspension: Double movement leaf spring + hydraulic shockers
+- Controller: **50 A, 24 MOSFETs**
+- Controller voltage: manufacturer page publishes “48W”; treat as unverified/likely typo
+
+## 2.8 CityLife 6P Ride — dealer/secondary source specifications
+- Model: **6P Ride**
+- Vehicle type: **Electric passenger 3-wheeler**
+- Seating capacity: **7 persons**
+- Battery type: **Lithium-ion**
+- Battery capacity (Ah/kWh): **Not sufficiently verified**
+- Motor: **BLDC**
+- Claimed range: **120 km**
+- Top speed: **30 km/h**
+- Charging time: **4 hours**
+- Battery warranty: **3 years** (dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official)
+
+### Dealership & Verification Guidance
+- Price: Do not put dealer listing price as OM Motors price; maintain in dealership price master
+- OM Motors stock: Enter from inventory
+- OM Motors selling price: Enter from price master
+- Brochure: Need official/authorized brochure
+- Source: CityLife / dealer sources
+
+### Sources
+- CityLife about/company: https://www.citylifeev.com/about
+- Official e-rickshaw range: https://www.citylifeev.com/electric-vehicles-erickshaw
+- XV-850: https://www.citylifeev.com/butterfly2020
+- LI-PRIMA: https://www.citylifeev.com/li-prima2020
+- Butterfly Deluxe: https://www.citylifeev.com/butterflydelux
+- Butterfly Super Deluxe: https://www.citylifeev.com/butterflysuperdeluxe
+- Standard: https://www.citylifeev.com/standard
+- Standard+: https://www.citylifeev.com/standardplus
+- School Type: https://www.citylifeev.com/schooltype
+- LI-MAX: https://www.citylifeev.com/xv-maxclosedbody
+- Third-party LI-PRIMA: https://trucks.cardekho.com/en/trucks/city-life/li-prima-2022/specifications
+- Third-party Standard: https://trucks.cardekho.com/en/trucks/city-life/standard-xv850/specifications
+- Third-party Standard+: https://trucks.cardekho.com/en/trucks/city-life/standard-plus-xv-850/specifications
+- Third-party School: https://trucks.cardekho.com/en/trucks/city-life/school-type-xv-850/specifications
+- Dealer sources for 6P Ride: https://www.citylifeev.com/electric-vehicles-erickshaw
+
+Verification: **Manufacturer model range and shared mechanical fields verified; some performance values are third-party because the official pages omit them or publish incomplete units.**
+
+---
+
+','Battery capacity (Ah/kWh) not sufficiently verified. Battery warranty 3 years is a dealer-listed specification; verify against manufacturer/dealer warranty document before treating as official. Need official/authorized brochure. OM Motors stock and selling price to be entered from inventory and price master.'),
 ('GREAVES_ELTRA_CITY_XTRA_CURRENT_PASSENGER','Greaves','Eltra','Eltra City XTRA','Current passenger','e_rickshaw','active','{"True range":"Up to 170 km","Top speed":"60 km/h in Power Mode","Battery":"10.75 kWh LFP","Motor":"9.5 kW PMS","Battery warranty":"5 years","0–30 km/h":"6.4 seconds"}','["https://3wheelers.greaveselectricmobility.com/eltra","https://3wheelers.greaveselectricmobility.com/","https://greaveselectricmobility.com/press-release/greaves-electric-mobility-rolls-out-festive-offers-across-india-for-nexus-and-magnus-neo","https://greaveselectricmobility.com/press-release/greaves-electric-mobility-s-newly-launched-eltra-city-xtra-does-the-unbelievable-324-km-on-a-single-charge-sets-new-national-record","https://3wheelers.greaveselectricmobility.com/pdfs/all_brochure.pdf"]','User-supplied research pack; manufacturer and secondary claims distinguished in source excerpt','2026-09-12','Manufacturer-backed fields in supplied data pack','GREAVES ELECTRIC 3-WHEELERS
 
 Manufacturer: **Greaves Electric Mobility Limited**

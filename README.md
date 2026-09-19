@@ -12,7 +12,7 @@ Use Team & permissions to approve technician emails, register a customer vehicle
 
 Validation covers complete isolated database workflows. Live Google-authenticated saves and Storage uploads still require the project owner to apply the migration; the public anon key cannot run SQL. The upgrade does not invent warranty durations, prices, customers, vehicles or transactions. Existing duplicate normalized vehicle/warranty identifiers must be resolved before the new uniqueness checks can be installed.
 
-For the existing project, run `supabase/UPGRADE_LIVE_OPERATIONS.sql` once in the Supabase SQL Editor, then refresh the app. This installs the live operations tables/functions and 59 product records from the supplied verified product data pack. It preserves existing customers, staff assignments, and role permissions. Do not rerun the fresh-project setup on an existing database.
+For the existing project, run `supabase/UPGRADE_LIVE_OPERATIONS.sql` once in the Supabase SQL Editor, then refresh the app. This installs the live operations tables/functions and 60 product records from the supplied verified product data pack. It preserves existing customers, staff assignments, and role permissions. Do not rerun the fresh-project setup on an existing database.
 
 For a fresh project, first run `supabase/SETUP_FRESH_PROJECT.sql`, then the upgrade above. The public anon key cannot install database changes. Google must be enabled in Supabase; allow the app's `/auth/callback` URL in Authentication URL Configuration.
 

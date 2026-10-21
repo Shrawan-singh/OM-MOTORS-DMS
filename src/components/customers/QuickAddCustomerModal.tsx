@@ -73,7 +73,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
             </div>
             <div>
               <h2 className="text-sm font-semibold text-slate-900">Quick-Add Customer</h2>
-              <p className="text-[11px] text-slate-500">Shop-floor speed registration (&lt; 15 seconds)</p>
+              <p className="text-[11px] text-slate-500">Shop-floor speed registration</p>
             </div>
           </div>
           <button

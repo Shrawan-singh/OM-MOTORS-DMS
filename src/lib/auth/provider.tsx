@@ -47,12 +47,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     void refresh();
-    const timer = setInterval(refresh, 15000);
+    const { data: authListener } = supabase?.auth.onAuthStateChange(() => {
+      void refresh();
+    }) || { data: { subscription: null } };
     window.addEventListener('focus', refresh);
 
     return () => {
       alive = false;
-      clearInterval(timer);
+      authListener?.subscription?.unsubscribe();
       window.removeEventListener('focus', refresh);
     };
   }, []);

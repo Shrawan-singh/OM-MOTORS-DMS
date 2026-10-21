@@ -40,9 +40,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const { data, error } = await supabase.rpc('my_access');
       if (alive) {
-        setAccess(
-          !error && data ? data : { role: null, email: user.email || '', permissions: [] }
-        );
+        const nextAccess: Access =
+          !error && data ? data : { role: null, email: user.email || '', permissions: [] };
+        setAccess((prev) => {
+          if (
+            prev.role === nextAccess.role &&
+            prev.email === nextAccess.email &&
+            prev.permissions.length === nextAccess.permissions.length &&
+            prev.permissions.every((p, i) => p === nextAccess.permissions[i])
+          ) {
+            return prev;
+          }
+          return nextAccess;
+        });
       }
     };
 

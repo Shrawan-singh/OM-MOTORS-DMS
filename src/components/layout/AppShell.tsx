@@ -13,7 +13,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const path = usePathname();
-  const { loading, error, refresh } = useDealerStore();
+  const { loading, initialized, error, refresh } = useDealerStore();
 
   const standalone =
     path === '/login' ||
@@ -72,7 +72,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {loading && !error ? (
+        {!initialized && loading && !error ? (
           <SkeletonDashboard />
         ) : (
           <ErrorBoundary>{children}</ErrorBoundary>

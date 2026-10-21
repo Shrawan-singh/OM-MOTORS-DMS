@@ -85,8 +85,9 @@ const empty: State = {
 type Store = State & {
   activeRole: StaffRole;
   loading: boolean;
+  initialized: boolean;
   error: string;
-  refresh: () => Promise<void>;
+  refresh: (opts?: { background?: boolean }) => Promise<void>;
   quickAddCustomer: (data: {
     name: string;
     phone: string;
@@ -135,18 +136,24 @@ const friendly = (e: { message: string; code?: string }) =>
 export function DealerStoreProvider({ children }: { children: React.ReactNode }) {
   const { role, email, permissions } = useAuth();
   const [state, setState] = useState<State>(empty);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
+  const initializedRef = useRef(false);
   const [error, setError] = useState('');
   const generation = useRef(0);
   const permissionKey = permissions.join('|');
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (opts?: { background?: boolean }) => {
+    const isBackground = opts?.background ?? initializedRef.current;
     const gen = ++generation.current;
     if (!role) {
       setState(empty);
+      setLoading(false);
       return;
     }
-    setLoading(true);
+    if (!isBackground) {
+      setLoading(true);
+    }
     setError('');
 
     const can = (p: string) => role === 'owner' || permissionKey.split('|').includes(p);
@@ -385,10 +392,16 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
         created_at: f.created_at,
       }));
 
-      if (gen === generation.current) setState(next);
+      if (gen === generation.current) {
+        setState(next);
+        setInitialized(true);
+        initializedRef.current = true;
+      }
     } catch (e) {
       if (gen === generation.current) {
-        setState(empty);
+        if (!initializedRef.current) {
+          setState(empty);
+        }
         setError(e instanceof Error ? e.message : 'Unable to load dealership data.');
       }
     } finally {
@@ -398,13 +411,11 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     localStorage.removeItem('om_motors_dealeros_state_v1');
-    void refresh();
-    const focus = () => void refresh();
+    void refresh({ background: initializedRef.current });
+    const focus = () => void refresh({ background: true });
     window.addEventListener('focus', focus);
-    const timer = setInterval(focus, 30000);
     return () => {
       generation.current++;
-      clearInterval(timer);
       window.removeEventListener('focus', focus);
     };
   }, [refresh]);
@@ -412,7 +423,7 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
   async function rpc(name: string, args: Row) {
     const { data, error } = await db().rpc(name, args);
     if (error) throw new Error(friendly(error));
-    await refresh();
+    await refresh({ background: true });
     return data;
   }
 
@@ -420,6 +431,7 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
     ...state,
     activeRole: (role || 'salesperson') as StaffRole,
     loading,
+    initialized,
     error,
     refresh,
     getCustomerById: (id) => state.customers.find((c) => c.id === id),

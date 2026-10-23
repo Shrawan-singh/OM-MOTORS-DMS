@@ -1,7 +1,6 @@
 # OM Motors workspace
 
-Next.js with Supabase Google authentication and database-enforced email assignments and role permissions. Initial administrator: suryasingh4395@gmail.com.
-
+Next.js with Supabase Google authentication and database-enforced email assignments and role permissions. 
 ## Activate this update
 
 For the Service & PDI module, apply `supabase/UPGRADE_WORKSHOP.sql` once **after** the live operations upgrade below. It adds General Manager, Service Manager, PDI/Delivery Staff and Warranty Staff to Team & permissions; no account is automatically assigned to the new roles. It restricts technicians to assigned service work and removes their previous broad module defaults. Admins can subsequently customize role permissions.

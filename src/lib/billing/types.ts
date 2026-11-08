@@ -19,7 +19,22 @@ export type Product = {
   notes: string;
 };
 
+export type AssetSerials = {
+  chassisNo?: string;
+  engineNo?: string;
+  motorNo?: string;
+  batterySerial?: string;
+  serialNo?: string;
+  registrationNo?: string;
+  assetId?: string;
+  warrantyId?: string;
+};
+
 export type BillingLine = {
+  vehicleId?: string;
+  chassisNo?: string;
+  motorNo?: string | null;
+  engineNo?: string | null;
   productId: string | null;
   inventoryId: string | null;
   name: string;
@@ -31,6 +46,7 @@ export type BillingLine = {
   taxable: number;
   tax: number;
   total: number;
+  serials?: AssetSerials;
 };
 
 export type BusinessProfile = {

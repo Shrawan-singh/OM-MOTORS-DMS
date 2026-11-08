@@ -14,7 +14,6 @@ import type {
   Customer,
   StaffRole,
   InventoryItem,
-  PhysicalVehicle,
   VehicleModel,
   Implement,
   SparePart,
@@ -27,6 +26,8 @@ import type {
   Warranty,
   CustomerTimelineEvent,
   ItemType,
+  CustomerAsset,
+  CustomerAssetHistory,
 } from '@/types';
 import type {
   Product,
@@ -44,7 +45,6 @@ type State = {
   profile: BusinessProfile | null;
   customers: Customer[];
   inventory: InventoryItem[];
-  physicalVehicles: PhysicalVehicle[];
   vehicleModels: VehicleModel[];
   implementsList: Implement[];
   parts: SparePart[];
@@ -58,6 +58,7 @@ type State = {
   timeline: CustomerTimelineEvent[];
   movements: Row[];
   collectionFollowups: CollectionFollowup[];
+  customerAssets: CustomerAsset[];
 };
 
 const empty: State = {
@@ -66,7 +67,6 @@ const empty: State = {
   profile: null,
   customers: [],
   inventory: [],
-  physicalVehicles: [],
   vehicleModels: [],
   implementsList: [],
   parts: [],
@@ -80,6 +80,7 @@ const empty: State = {
   timeline: [],
   movements: [],
   collectionFollowups: [],
+  customerAssets: [],
 };
 
 type Store = State & {
@@ -119,6 +120,18 @@ type Store = State & {
     id: string,
     status: 'pending' | 'honoured' | 'broken' | 'cancelled'
   ) => Promise<void>;
+  registerInvoiceAssets: (invoiceId: string, assets: Array<{
+    lineIndex: number;
+    chassisNo?: string;
+    engineNo?: string;
+    motorNo?: string;
+    batterySerial?: string;
+    serialNo?: string;
+    registrationNo?: string;
+    warrantyMonths?: number;
+    notes?: string;
+  }>) => Promise<any>;
+  fetchCustomerAssets: (customerId: string) => Promise<{ assets: CustomerAsset[]; history: CustomerAssetHistory[] }>;
 };
 
 const Context = createContext<Store | null>(null);
@@ -189,8 +202,8 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
         warranties,
         timeline,
         movements,
-        vehicles,
         followups,
+        assets,
       ] = await Promise.all([
         fetchRows(
           'catalog_products',
@@ -209,8 +222,10 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
         Promise.resolve([] as Row[]),
         fetchRows('customer_timeline', can('customers.read')),
         fetchRows('stock_movements', can('inventory.read')),
-        fetchRows('vehicles', can('inventory.read')),
         fetchRows('collection_followups', can('invoices.read') || can('customers.read')).catch(
+          () => [] as Row[]
+        ),
+        fetchRows('customer_assets', can('customers.read') || can('invoices.read') || can('service.read')).catch(
           () => [] as Row[]
         ),
       ]);
@@ -363,21 +378,6 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
       }));
       next.movements = movements.sort((a, b) => b.created_at.localeCompare(a.created_at));
 
-      next.physicalVehicles = vehicles.map((v) => ({
-        id: v.id,
-        modelId: v.model_id,
-        modelName: v.model_id,
-        category: 'tractor',
-        chassisNo: v.chassis_no,
-        engineNo: v.engine_no,
-        colour: v.colour,
-        manufacturingYear: v.manufacturing_year,
-        status: v.status,
-        customerId: v.customer_id,
-        receivedDate: v.received_date,
-        price: 0,
-      }));
-
       next.collectionFollowups = (followups || []).map((f: Row) => ({
         id: f.id,
         customer_id: f.customer_id,
@@ -390,6 +390,33 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
         status: f.status,
         created_by: f.created_by,
         created_at: f.created_at,
+      }));
+
+      next.customerAssets = (assets || []).map((a: Row) => ({
+        id: a.id,
+        customerId: a.customer_id,
+        billingInvoiceId: a.billing_invoice_id,
+        vehicleId: a.vehicle_id,
+        warrantyId: a.warranty_id,
+        itemType: a.item_type,
+        productId: a.product_id,
+        productName: a.product_name,
+        brand: a.brand || '',
+        chassisNo: a.chassis_no || '',
+        engineNo: a.engine_no || '',
+        motorNo: a.motor_no || '',
+        batterySerial: a.battery_serial || '',
+        serialNo: a.serial_no || '',
+        registrationNo: a.registration_no || '',
+        warrantyMonths: a.warranty_months || 0,
+        warrantyStart: a.warranty_start,
+        warrantyEnd: a.warranty_end,
+        status: a.status || 'active',
+        replacedBy: a.replaced_by,
+        replaces: a.replaces,
+        notes: a.notes || '',
+        createdAt: a.created_at,
+        updatedAt: a.updated_at,
       }));
 
       if (gen === generation.current) {
@@ -509,6 +536,58 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
     },
     updateFollowupStatus: async (id, status) => {
       await rpc('app_update_followup_status', { p_id: id, p_status: status });
+    },
+    registerInvoiceAssets: async (invoiceId, assets) => {
+      return await rpc('app_register_invoice_assets', {
+        p_invoice_id: invoiceId,
+        p_assets: assets,
+      });
+    },
+    fetchCustomerAssets: async (customerId) => {
+      const { data, error } = await db().rpc('app_customer_assets', {
+        p_customer_id: customerId,
+      });
+      if (error) throw new Error(friendly(error));
+      const result = data as { assets: Row[]; history: Row[] };
+      return {
+        assets: (result.assets || []).map((a: Row) => ({
+          id: a.id,
+          customerId: a.customer_id,
+          billingInvoiceId: a.billing_invoice_id,
+          vehicleId: a.vehicle_id,
+          warrantyId: a.warranty_id,
+          itemType: a.item_type,
+          productId: a.product_id,
+          productName: a.product_name,
+          brand: a.brand || '',
+          chassisNo: a.chassis_no || '',
+          engineNo: a.engine_no || '',
+          motorNo: a.motor_no || '',
+          batterySerial: a.battery_serial || '',
+          serialNo: a.serial_no || '',
+          registrationNo: a.registration_no || '',
+          warrantyMonths: a.warranty_months || 0,
+          warrantyStart: a.warranty_start,
+          warrantyEnd: a.warranty_end,
+          status: a.status || 'active',
+          replacedBy: a.replaced_by,
+          replaces: a.replaces,
+          notes: a.notes || '',
+          createdAt: a.created_at,
+          updatedAt: a.updated_at,
+        })),
+        history: (result.history || []).map((h: Row) => ({
+          id: h.id,
+          assetId: h.asset_id,
+          action: h.action,
+          actor: h.actor,
+          beforeRecord: h.before_record,
+          afterRecord: h.after_record,
+          reason: h.reason || '',
+          claimId: h.claim_id,
+          createdAt: h.created_at,
+        })),
+      };
     },
   };
 

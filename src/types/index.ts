@@ -291,3 +291,43 @@ export interface BillScanResult {
   taxAmount: number;
   totalAmount: number;
 }
+
+export interface CustomerAsset {
+  id: string;
+  customerId: string;
+  billingInvoiceId?: string;
+  vehicleId?: string;
+  warrantyId?: string;
+  itemType: ItemType;
+  productId?: string;
+  productName: string;
+  brand: string;
+  chassisNo: string;
+  engineNo: string;
+  motorNo: string;
+  batterySerial: string;
+  serialNo: string;
+  registrationNo: string;
+  warrantyMonths: number;
+  warrantyStart?: string;
+  warrantyEnd?: string;
+  status: 'active' | 'replaced' | 'transferred' | 'returned';
+  replacedBy?: string;
+  replaces?: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomerAssetHistory {
+  id: string;
+  assetId: string;
+  action: string;
+  actor?: string;
+  beforeRecord?: Record<string, any>;
+  afterRecord?: Record<string, any>;
+  reason: string;
+  claimId?: string;
+  createdAt: string;
+}
+

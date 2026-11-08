@@ -1,4 +1,5 @@
 'use client';
+import { ExportLink } from '@/components/vehicles/ExportLink';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -59,6 +60,9 @@ export function DocumentList({ kind }: { kind: 'quotation' | 'invoice' }) {
     <div>
       {/* Page heading */}
       <div className="page-heading">
+        {kind === 'invoice' && (
+          <ExportLink dataset="sales" filters={{ ids: rows.map((r) => r.id) }} />
+        )}
         <div>
           <p className="eyebrow">DOCUMENTS & BILLING</p>
           <h1>{kind === 'invoice' ? 'Invoices & payments' : 'Quotations'}</h1>

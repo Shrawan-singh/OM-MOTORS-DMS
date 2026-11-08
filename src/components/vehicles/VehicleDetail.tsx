@@ -1,4 +1,5 @@
 'use client';
+import { ExportLink } from '@/components/vehicles/ExportLink';
 import Link from 'next/link';
 import { VehicleActions } from './VehicleActions';
 import { label, useVehicleQuery, type Detail, type DetailRow } from '@/lib/vehicles/register';
@@ -122,6 +123,7 @@ export function VehicleDetail({ vehicleId }: { vehicleId: string }) {
         ← Vehicle register
       </Link>
       <header className="page-heading">
+        <ExportLink dataset="full_register" filters={{ vehicle_id: vehicleId }} />
         <div>
           <h1>{vehicle.chassis_no}</h1>
           <p>

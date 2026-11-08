@@ -42,19 +42,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="workspace">
+      <a className="workspace-skip" href="#workspace-content">
+        Skip to main content
+      </a>
       {/* Mobile hamburger button */}
       <button
         className="mobile-menu-toggle"
-        aria-label="Open navigation"
-        onClick={() => setSidebarOpen(true)}
+        aria-label={sidebarOpen ? 'Close navigation' : 'Open navigation'}
+        aria-expanded={sidebarOpen}
+        aria-controls="workspace-navigation"
+        onClick={() => setSidebarOpen((open) => !open)}
       >
         <Menu size={20} />
       </button>
 
       {/* Sidebar backdrop for mobile */}
-      {sidebarOpen && (
-        <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />
-      )}
+      {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
 
       <Navbar
         onOpenSearch={() => setSearchOpen(true)}
@@ -62,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         onCloseSidebar={() => setSidebarOpen(false)}
       />
 
-      <main className="workspace-main">
+      <main id="workspace-content" tabIndex={-1} className="workspace-main">
         {error && (
           <div className="error-message" role="alert">
             {error}{' '}

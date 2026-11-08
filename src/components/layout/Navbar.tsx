@@ -33,6 +33,8 @@ const navLinks = [
   { href: '/customers', label: 'Customers', icon: Users, permission: 'customers.read' },
   { href: '/inventory', label: 'Inventory', icon: Package, permission: 'inventory.read' },
   { href: '/vehicles', label: 'Vehicles', icon: Tractor, permission: 'vehicles.read' },
+  { href: '/database', label: 'Database', icon: Search, permission: 'vehicles.read' },
+  { href: '/export', label: 'Excel exports', icon: FileText, permission: 'vehicles.export' },
   { href: '/quotations', label: 'Quotations', icon: FileText, permission: 'quotations.read' },
   { href: '/invoices', label: 'Invoices & payments', icon: Receipt, permission: 'invoices.read' },
   { href: '/receivables', label: 'Receivables', icon: CreditCard, permission: 'invoices.read' },
@@ -52,13 +54,17 @@ export function Navbar({ onOpenSearch, sidebarOpen, onCloseSidebar }: NavbarProp
     path === '/admin'
       ? 'Team & permissions'
       : path === '/admin/audit'
-      ? 'Audit logs'
-      : navLinks.find((l) => l.href === path || (l.href !== '/' && path.startsWith(l.href + '/')))?.label || 'Dealership';
+        ? 'Audit logs'
+        : navLinks.find((l) => l.href === path || (l.href !== '/' && path.startsWith(l.href + '/')))
+            ?.label || 'Dealership';
 
   return (
     <>
       {/* Sidebar */}
-      <aside className={`app-sidebar${sidebarOpen ? ' sidebar-open' : ''}`}>
+      <aside
+        id="workspace-navigation"
+        className={`app-sidebar${sidebarOpen ? ' sidebar-open' : ''}`}
+      >
         <Link href="/" className="sidebar-brand" onClick={onCloseSidebar}>
           <span>
             <Tractor size={24} />
@@ -71,17 +77,16 @@ export function Navbar({ onOpenSearch, sidebarOpen, onCloseSidebar }: NavbarProp
 
         <p className="nav-caption">WORKSPACE</p>
 
-        <nav>
+        <nav aria-label="Workspace">
           {navLinks
             .filter((l) => can(l.permission))
             .map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
+                aria-current={path === l.href ? 'page' : undefined}
                 className={
-                  path === l.href || (l.href !== '/' && path.startsWith(l.href))
-                    ? 'active'
-                    : ''
+                  path === l.href || (l.href !== '/' && path.startsWith(l.href)) ? 'active' : ''
                 }
                 onClick={onCloseSidebar}
               >
@@ -94,9 +99,10 @@ export function Navbar({ onOpenSearch, sidebarOpen, onCloseSidebar }: NavbarProp
         {role === 'owner' && (
           <>
             <p className="nav-caption">ADMINISTRATION</p>
-            <nav>
+            <nav aria-label="Administration">
               <Link
                 href="/admin"
+                aria-current={path === '/admin' ? 'page' : undefined}
                 className={path === '/admin' ? 'active' : ''}
                 onClick={onCloseSidebar}
               >
@@ -105,6 +111,7 @@ export function Navbar({ onOpenSearch, sidebarOpen, onCloseSidebar }: NavbarProp
               </Link>
               <Link
                 href="/admin/audit"
+                aria-current={path === '/admin/audit' ? 'page' : undefined}
                 className={path === '/admin/audit' ? 'active' : ''}
                 onClick={onCloseSidebar}
               >

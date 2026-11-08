@@ -1,4 +1,5 @@
 'use client';
+import { ExportLink } from '@/components/vehicles/ExportLink';
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -69,6 +70,7 @@ export default function Inventory() {
     <div>
       {/* Page heading */}
       <div className="page-heading">
+        <ExportLink dataset="stock" filters={{ q: search }} />
         <div>
           <p className="eyebrow">STOCK CONTROL</p>
           <h1>Inventory</h1>

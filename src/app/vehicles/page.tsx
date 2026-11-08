@@ -1,4 +1,5 @@
 'use client';
+import { ExportLink } from '@/components/vehicles/ExportLink';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth/provider';
@@ -44,6 +45,7 @@ export default function VehiclesPage() {
     <div>
       <header className="page-heading">
         <h1>Vehicle register</h1>
+        <ExportLink dataset="vehicles" filters={{ q, ...filters }} />
         {can('vehicles.write') && (
           <Link href="/vehicles/receive" className="primary-button">
             Receive vehicle
@@ -136,19 +138,20 @@ export default function VehiclesPage() {
         ) : !result.data ? (
           <p role="status">Loading vehicles…</p>
         ) : result.data.length === 0 ? (
-          <p className="empty-state">No vehicles found.</p>
+          <p className="empty-state vehicle-empty">No vehicles found.</p>
         ) : (
           <>
             <table className="team-table">
+              <caption className="sr-only">Matching vehicles</caption>
               <thead>
                 <tr>
-                  <th>Chassis</th>
-                  <th>Model</th>
-                  <th>Status</th>
-                  <th>Registration</th>
-                  {can('customers.read') && <th>Owner</th>}
-                  <th>Received</th>
-                  <th>Location</th>
+                  <th scope="col">Chassis</th>
+                  <th scope="col">Model</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Registration</th>
+                  {can('customers.read') && <th scope="col">Owner</th>}
+                  <th scope="col">Received</th>
+                  <th scope="col">Location</th>
                 </tr>
               </thead>
               <tbody>
@@ -182,7 +185,7 @@ export default function VehiclesPage() {
           >
             Previous
           </button>
-          <span>Page {offset / size + 1}</span>
+          <span role="status">Page {offset / size + 1}</span>
           <button
             className="secondary-button"
             disabled={!result.data || result.data.length <= size}

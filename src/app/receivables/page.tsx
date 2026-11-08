@@ -1,4 +1,5 @@
 'use client';
+import { ExportLink } from '@/components/vehicles/ExportLink';
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
@@ -283,6 +284,10 @@ export default function ReceivablesPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+        <ExportLink
+          dataset="sales"
+          filters={{ ids: filteredInvoices.map((r) => r.id), balance_due: true }}
+        />
           <button
             onClick={() => void refresh()}
             disabled={loading}

@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
     if (data.permissions?.includes('service.read')) return redirect('/service');
     if (data.permissions?.includes('vehicles.read')) return redirect('/vehicles');
   }
-  const permission = `${routeModule(path)}.${['/quotations/new', '/invoices/new', '/vehicles/receive'].includes(path) ? 'write' : 'read'}`;
+  const permission = path === '/export' || path === '/api/export' ? 'vehicles.export' : `${routeModule(path)}.${['/quotations/new', '/invoices/new', '/vehicles/receive'].includes(path) ? 'write' : 'read'}`;
   const allowed = data.role === 'owner' || (path !== '/admin' && data.permissions?.includes(permission));
   response.headers.set('Cache-Control', 'private, no-store');
   return allowed ? response : redirect('/access-pending?reason=permission');

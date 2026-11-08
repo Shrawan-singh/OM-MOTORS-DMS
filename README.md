@@ -21,6 +21,10 @@ After the existing upgrades through `20260914_013_receivables_management.sql`, r
 
 Existing vehicles retain their IDs. The migration copies legacy battery, ownership and registration records into history tables. The workshop battery field shows the first active battery. Historical registrations and batteries retain an unknown registration or installation date. Backfilled ownership uses the purchase date when available, followed by receipt date or record creation date. Conflicting normalized identifiers abort the upgrade and identify the affected vehicles for correction.
 
+Use **Vehicles** for stock intake and lifecycle history. **Database** accepts chassis, motor, battery, past and current registration, customer name or mobile. Database shows up to 50 matches per group. Its Excel and CSV actions use those same result groups. From **Excel exports**, choose a dataset or a saved template for a larger report. Preview shows up to 20 rows per sheet and a workbook can contain up to 50,000 data rows in total.
+
+Database access requires `vehicles.read`. Owner, manager and accountant have export access by default. The owner can change `vehicles.export` in **Team & permissions**. Customer and invoice permissions also govern the available data, including when staff run a shared template. **Audit logs** records who exported each dataset.
+
 ### Manual Phase 1 check
 
 1. Sign in on staging with vehicle write access. Under **Inventory → Receive vehicle**, choose a catalogue model and PDI inspector. Receive a chassis with two battery serials. Use **Receive and add another** for the second vehicle.
@@ -43,11 +47,24 @@ Barcode capture is optional. Set `NEXT_PUBLIC_ENABLE_CHASSIS_SCAN=true` at build
 2. Add a battery and replace it with a new serial. Verify the installation and removal dates, reason and recent register activity.
 3. Open an owned vehicle as a manager. Select another customer and confirm a dated transfer. Check that the previous ownership ends on the transfer date and the new owner appears on the vehicle card. The original invoice retains its purchaser.
 
-The vehicle register migration includes phases 1–3. Reapply it to staging if an earlier version was already installed.
+### Manual Phase 4 check
+
+1. In **Database**, search a sold chassis by registration, component serial and customer mobile. Try the mobile with and without the country code. Open the vehicle and customer to compare the registration, sale, balance and service history.
+2. Open **Download Excel** from those results. Preview the grouped sheets, rename or reorder a column and download. Compare each sheet with its result group. Check a leading-zero identifier in Excel and the row counts on **Read me**.
+3. Run **Sold vehicles with customer details** and compare each sold chassis, customer name, mobile and registration with the dealership register. Save a template, share it and open it as another authorized staff member.
+4. Test a role with export access and without customer access. Check the workbook for omitted customer fields, then confirm that the export appears in the audit trail.
+
+### Phase 5 verification
+
+CI builds the production app on Node 22 and runs typecheck, lint, database, workbook and HTTP route tests. It uses isolated test data and a loopback Supabase URL. To reproduce the scale check, run `REGISTER_BENCHMARK=1 node tests/vehicles.test.mjs`. It adds 5,000 vehicles and batteries, 1,000 buyers and 2,500 ownership records in PGlite, checks a selective lookup with `EXPLAIN ANALYZE`, and times grouped chassis, serial and mobile searches. Timings depend on the runner.
+
+For staging acceptance, receive two vehicles, pass PDI and invoice one by selecting its chassis. Add its registration and search Database by chassis, motor, battery, registration and customer mobile. Open Customer 360 and check the invoice, balance and ownership. Complete the sold-vehicle workbook comparison above. With the keyboard, open global search, tab through matches, press Escape and check focus returns. Use the skip link, filter the register, and preview a reordered export.
+
+The vehicle register migration includes phases 1–5. Reapply it to staging if an earlier version was already installed.
 
 ## Run
 
-`npm install`, then `npm run dev`. Production: `npm run build`, then `npm start`.
+`npm ci --legacy-peer-deps`, then `npm run dev`. Production: `npm run build`, then `npm start`.
 
 `.env.local` holds the supplied public project URL and anon key. Never place a service-role key in the browser. Use `.env.example` for another environment.
 

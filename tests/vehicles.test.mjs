@@ -256,6 +256,97 @@ try {
   );
   await rpc('vehicle_transfer_owner', transfer);
   const transferred = await detail(transferVehicle);
+  const grouped = (q) => value('select public.db_search($1,$2,40)', [q, '{}']);
+  for (const phone of ['9876543210', '+91 98765 43210', '98765-43210']) {
+    const groups = await grouped(phone);
+    assert.ok(groups.vehicles.some((v) => v.id === transferVehicle && v.matched_on === 'mobile'));
+    assert.ok(groups.vehicles.some((v) => v.id === original));
+    assert.doesNotMatch(JSON.stringify(groups), /SECRET|aadhaar|pan_no|id_document/);
+  }
+  for (const [q, why] of [
+    ['CH-1', 'chassis'],
+    ['motor1', 'motor'],
+    ['R01', 'battery'],
+    ['B-1', 'battery'],
+    ['UP 12-A001', 'registration'],
+    ['UP12A002', 'registration'],
+  ]) {
+    assert.ok((await grouped(q)).vehicles.some((v) => v.id === vid && v.matched_on === why));
+  }
+  const customerRecord = await value('select public.customer_360($1)', [customer]);
+  assert.ok(customerRecord.vehicles.some((r) => r.vehicle.id === transferVehicle));
+  assert.doesNotMatch(JSON.stringify(customerRecord), /SECRET|aadhaar|pan_no|id_document/);
+  const exportRows = (ds, cols, f = {}, lim = 50000) =>
+    value('select public.export_dataset($1,$2,$3,$4)', [ds, cols, JSON.stringify(f), lim]);
+  const results = await grouped('9876543210');
+  for (const [dataset, group, key] of [
+    ['vehicles', 'vehicles', 'chassis'],
+    ['components', 'components', 'serial'],
+    ['customers', 'customers', 'owner'],
+    ['sales', 'invoices', 'invoice'],
+  ]) {
+    const report = await exportRows(dataset, [key], { q: '9876543210', database_results: true });
+    assert.deepEqual(
+      report.rows.map((row) => row[key]).sort(),
+      results[group].map((hit) => hit.title).sort()
+    );
+  }
+  const exported = await exportRows('vehicles', ['mobile', 'chassis', 'pan_no'], {
+    vehicle_id: original,
+  });
+  assert.deepEqual(exported.columns, ['mobile', 'chassis']);
+  assert.deepEqual(exported.dropped, ['pan_no']);
+  const sheets = Object.fromEntries(
+    ['vehicles', 'components', 'ownership', 'registrations', 'customers', 'sales'].map((ds) => [
+      ds,
+      ds === 'sales' ? ['invoice'] : ds === 'customers' ? ['owner'] : ['chassis'],
+    ])
+  );
+  const workbookData = await value('select public.export_workbook($1,$2,$3)', [
+    'full_register',
+    JSON.stringify(sheets),
+    JSON.stringify({ vehicle_id: original }),
+  ]);
+  assert.deepEqual(Object.keys(workbookData).sort(), Object.keys(sheets).sort());
+  assert.ok(workbookData.components.rows.every((row) => row.chassis === 'LEGACY-01'));
+  assert.equal(exported.rows[0].chassis, 'LEGACY-01');
+  await assert.rejects(exportRows('vehicles', ['chassis'], {}, 1), /exceeds/);
+  for (const ds of [
+    'stock',
+    'customers',
+    'components',
+    'ownership',
+    'registrations',
+    'sales',
+    'full_register',
+  ]) {
+    const result = await exportRows(ds, ['chassis', 'owner', 'amount']);
+    assert.ok(Array.isArray(result.rows));
+  }
+  const saved = await rpc('export_template_save', {
+    name: 'Custom report',
+    dataset: 'vehicles',
+    columns: [{ key: 'chassis', header: 'Unit' }],
+    filters: { unsold: true },
+    sheet_layout: 'single',
+  });
+  assert.deepEqual(
+    await value('select columns from public.export_templates where id=$1', [saved]),
+    [{ key: 'chassis', header: 'Unit' }]
+  );
+  await value('select public.export_template_delete($1)', [saved]);
+  assert.ok((await value('select count(*)::int from public.export_log')) >= 8);
+  await as(inventory);
+  await assert.rejects(exportRows('vehicles', ['chassis']), /export permission/);
+  await as(owner);
+  await query(
+    "select public.admin_save_permissions('inventory',array['vehicles.read','vehicles.export','vehicles.write'])"
+  );
+  await as(inventory);
+  const restricted = await exportRows('vehicles', ['chassis', 'owner', 'mobile', 'invoice']);
+  assert.deepEqual(restricted.columns, ['chassis']);
+  assert.equal((await grouped('9876543210')).customers.length, 0);
+  await as(owner);
   assert.equal(transferred.ownership.length, 2);
   assert.equal(transferred.ownership.find((o) => !o.to_date).source, 'transfer');
   assert.equal(
@@ -324,6 +415,34 @@ try {
   await as(owner);
   assert.equal((await detail(original)).ownership.length, 1);
   assert.equal((await detail(original)).registrations.length, 2);
+  if (process.env.REGISTER_BENCHMARK === '1') {
+    await db.exec('reset role');
+    await db.exec(`INSERT INTO public.customers(name,phone,village)
+      SELECT 'Benchmark buyer ' || i, (8000000000::bigint + i)::text, 'Test village'
+      FROM generate_series(1,1000) i;
+      INSERT INTO public.vehicles(model_name,chassis_no,colour,customer_id)
+      SELECT 'Benchmark tractor','BENCH-' || md5(i::text),'Blue',c.id
+      FROM generate_series(1,5000) i LEFT JOIN public.customers c
+        ON i <= 2500 AND c.phone=(8000000001::bigint + i % 1000)::text;
+      INSERT INTO public.vehicle_components(vehicle_id,component_type,serial_no)
+      SELECT id,'battery','BAT-' || chassis_no FROM public.vehicles WHERE chassis_no LIKE 'BENCH-%';
+      ANALYZE public.vehicle_components;`);
+    await db.exec('vacuum analyze public.vehicles');
+    await db.exec('analyze public.customers; analyze public.vehicle_ownership');
+    const chassis = await value("select 'BENCH-' || md5('2500')");
+    const plan = await query(
+      'explain (analyze, format json) select id from public.vehicles where search_text like $1',
+      ['%' + chassis.slice(-10) + '%']
+    );
+    assert.match(JSON.stringify(plan), /vehicle_search_trgm_idx/);
+    await as(owner);
+    for (const term of [chassis, 'BAT-' + chassis, '+91 80000-00501']) {
+      const start = performance.now();
+      const result = await grouped(term);
+      assert.equal(result.vehicles.length, term.startsWith('+91') ? 3 : 1);
+      console.log('db_search', term, Math.round(performance.now() - start), 'ms');
+    }
+  }
   await db.exec('reset role; set role anon');
   await assert.rejects(detail(vid), /permission denied/);
   console.log(

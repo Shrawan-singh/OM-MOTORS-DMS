@@ -931,5 +931,335 @@ END $$;
 REVOKE ALL ON FUNCTION public.vehicle_set_registration(jsonb),public.vehicle_transfer_owner(jsonb) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.vehicle_set_registration(jsonb),public.vehicle_transfer_owner(jsonb) TO authenticated;
 
+CREATE OR REPLACE FUNCTION public.customer_match(name text, phone text, q text) RETURNS text
+LANGUAGE sql IMMUTABLE SET search_path='' AS $$
+  SELECT CASE WHEN q ~ '^[+0-9 ()-]+$' AND length(regexp_replace(q,'[^0-9]','','g'))>=10
+    AND right(regexp_replace(q,'[^0-9]','','g'),10)=right(regexp_replace(phone,'[^0-9]','','g'),10) THEN 'mobile'
+    WHEN trim(q)<>'' AND strpos(lower(name),lower(trim(q)))>0 THEN 'customer name' END
+$$;
+
+-- Apply the selective text and phone predicates before computing a match explanation.
+-- Historical components and registrations remain searchable after replacement.
+CREATE OR REPLACE FUNCTION public.register_contains_pattern(value text) RETURNS text
+LANGUAGE sql IMMUTABLE STRICT PARALLEL SAFE SET search_path='' AS $$
+  SELECT '%' || replace(replace(replace(value,'!','!!'),'%','!%'),'_','!_') || '%'
+$$;
+CREATE INDEX IF NOT EXISTS component_serial_search_idx ON public.vehicle_components
+  USING gin(public.vehicle_number_key(serial_no) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS registration_history_search_idx ON public.vehicle_registrations
+  USING gin(public.vehicle_number_key(registration_no) gin_trgm_ops);
+
+CREATE OR REPLACE FUNCTION public.register_matches(q text,f jsonb)
+RETURNS TABLE(vid uuid,matched_on text) LANGUAGE sql STABLE SET search_path='' AS $$
+  SELECT v.id,m.reason FROM public.vehicles v
+  LEFT JOIN public.billing_documents b ON b.id=v.purchase_invoice_id AND public.has_permission('invoices.read')
+  CROSS JOIN LATERAL (SELECT coalesce(
+    CASE WHEN trim(coalesce(q,''))='' THEN 'register' END,
+    (SELECT label FROM (VALUES ('chassis',v.chassis_no),('motor',v.motor_no),('engine',v.engine_no),
+      ('registration',v.registration_no)) numbers(label,val)
+      WHERE strpos(public.vehicle_number_key(val),public.vehicle_number_key(q))>0 LIMIT 1),
+    (SELECT component_type FROM public.vehicle_components c WHERE c.vehicle_id=v.id
+      AND strpos(public.vehicle_number_key(c.serial_no),public.vehicle_number_key(q))>0 LIMIT 1),
+    (SELECT 'registration' FROM public.vehicle_registrations r WHERE r.vehicle_id=v.id
+      AND strpos(public.vehicle_number_key(r.registration_no),public.vehicle_number_key(q))>0 LIMIT 1),
+    CASE WHEN public.has_permission('customers.read') THEN (SELECT public.customer_match(c.name,c.phone,q)
+      FROM public.vehicle_ownership o JOIN public.customers c ON c.id=o.customer_id WHERE o.vehicle_id=v.id
+      AND public.customer_match(c.name,c.phone,q) IS NOT NULL LIMIT 1) END,
+    CASE WHEN strpos(lower(b.number),lower(trim(q)))>0 THEN 'invoice'
+      WHEN strpos(v.search_text,lower(trim(q)))>0 THEN 'vehicle details' END) reason) m
+  WHERE (trim(coalesce(q,''))='' OR v.id IN (
+    SELECT lookup.id FROM public.vehicles lookup
+      WHERE lookup.search_text LIKE public.register_contains_pattern(lower(trim(q))) ESCAPE '!'
+         OR lookup.search_text LIKE public.register_contains_pattern(lower(public.vehicle_number_key(q))) ESCAPE '!'
+    UNION ALL SELECT c.vehicle_id FROM public.vehicle_components c
+      WHERE public.vehicle_number_key(c.serial_no) LIKE public.register_contains_pattern(public.vehicle_number_key(q)) ESCAPE '!'
+    UNION ALL SELECT r.vehicle_id FROM public.vehicle_registrations r
+      WHERE public.vehicle_number_key(r.registration_no) LIKE public.register_contains_pattern(public.vehicle_number_key(q)) ESCAPE '!'
+    UNION ALL SELECT o.vehicle_id FROM public.customers c JOIN public.vehicle_ownership o ON o.customer_id=c.id
+      WHERE public.has_permission('customers.read') AND (lower(c.name) LIKE public.register_contains_pattern(lower(trim(q))) ESCAPE '!'
+        OR (q ~ '^[+0-9 ()-]+$' AND length(regexp_replace(q,'[^0-9]','','g'))>=10
+          AND c.phone_norm=right(regexp_replace(q,'[^0-9]','','g'),10)))
+    UNION ALL SELECT sale.id FROM public.billing_documents invoice JOIN public.vehicles sale ON sale.purchase_invoice_id=invoice.id
+      WHERE public.has_permission('invoices.read') AND lower(invoice.number) LIKE public.register_contains_pattern(lower(trim(q))) ESCAPE '!'
+  )) AND m.reason IS NOT NULL AND (nullif(f->>'vehicle_id','') IS NULL OR v.id::text=f->>'vehicle_id')
+    AND (nullif(f->>'customer_id','') IS NULL OR (public.has_permission('customers.read') AND EXISTS
+      (SELECT FROM public.vehicle_ownership o WHERE o.vehicle_id=v.id AND o.customer_id::text=f->>'customer_id')))
+    AND (nullif(f->>'owner','') IS NULL OR (public.has_permission('customers.read') AND EXISTS
+      (SELECT FROM public.customers c WHERE c.id=v.customer_id AND strpos(lower(c.name),lower(f->>'owner'))>0)))
+    AND (nullif(f->>'model','') IS NULL OR strpos(lower(v.model_name),lower(f->>'model'))>0)
+    AND (nullif(f->>'type','') IS NULL OR v.vehicle_type=f->>'type')
+    AND (nullif(f->>'status','') IS NULL OR v.lifecycle=f->>'status')
+    AND (NOT coalesce((f->>'unsold')::boolean,false) OR (v.customer_id IS NULL AND v.lifecycle NOT IN ('sold','delivered')))
+    AND (NOT coalesce((f->>'pdi')::boolean,false) OR v.lifecycle IN ('pdi_pending','pdi_failed','pdi_issues'))
+    AND (NOT coalesce((f->>'sold')::boolean,false) OR v.lifecycle IN ('sold','delivered'))
+    AND (NOT coalesce((f->>'unregistered')::boolean,false) OR nullif(v.registration_no,'') IS NULL)
+    AND (NOT coalesce((f->>'registered')::boolean,false) OR nullif(v.registration_no,'') IS NOT NULL)
+    AND (NOT coalesce((f->>'balance_due')::boolean,false) OR b.total>b.amount_paid)
+    AND (NOT(f?'ids') OR CASE f->>'root_dataset'
+      WHEN 'sales' THEN public.has_permission('invoices.read') AND (f->'ids') ? b.id::text
+      WHEN 'stock' THEN public.has_permission('inventory.read') AND (f->'ids') ? v.stock_id::text
+      ELSE true END)
+    AND (nullif(f->>'from','') IS NULL OR (CASE WHEN f->>'root_dataset'='sales' THEN b.document_date ELSE v.received_date END)>=(f->>'from')::date)
+    AND (nullif(f->>'to','') IS NULL OR (CASE WHEN f->>'root_dataset'='sales' THEN b.document_date ELSE v.received_date END)<=(f->>'to')::date)
+$$;
+REVOKE ALL ON FUNCTION public.register_matches(text,jsonb) FROM PUBLIC,anon,authenticated;
+
+CREATE OR REPLACE FUNCTION public.db_search(q text,filters jsonb DEFAULT '{}',lim int DEFAULT 40)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$
+DECLARE n int:=least(greatest(lim,1),100); result jsonb;
+BEGIN
+  IF NOT public.has_permission('vehicles.read') THEN RAISE EXCEPTION 'Vehicle read permission required'; END IF;
+  WITH matches AS MATERIALIZED (SELECT * FROM public.register_matches(q,filters)),
+  vehicles AS (SELECT v.id,v.chassis_no AS title,v.model_name AS detail,m.matched_on FROM matches m
+    JOIN public.vehicles v ON v.id=m.vid ORDER BY v.chassis_no LIMIT n),
+  customers AS (SELECT c.id,c.name AS title,c.phone AS detail,coalesce(public.customer_match(c.name,c.phone,q),'linked vehicle') AS matched_on
+    FROM public.customers c WHERE public.has_permission('customers.read') AND
+    ((filters='{}' AND ((trim(q)<>'' AND lower(c.name) LIKE public.register_contains_pattern(lower(trim(q))) ESCAPE '!')
+      OR (q ~ '^[+0-9 ()-]+$' AND length(regexp_replace(q,'[^0-9]','','g'))>=10
+        AND c.phone_norm=right(regexp_replace(q,'[^0-9]','','g'),10)))) OR EXISTS
+      (SELECT FROM public.vehicle_ownership o JOIN matches m ON m.vid=o.vehicle_id WHERE o.customer_id=c.id)) ORDER BY c.name,c.id LIMIT n),
+  invoices AS (SELECT b.id,b.number AS title,b.document_date::text AS detail,
+    CASE WHEN q<>'' AND strpos(lower(b.number),lower(q))>0 THEN 'invoice' ELSE 'linked record' END AS matched_on
+    FROM public.billing_documents b WHERE public.has_permission('invoices.read') AND b.kind='invoice' AND b.cancelled_at IS NULL
+    AND ((filters='{}' AND (strpos(lower(b.number),lower(q))>0 OR EXISTS (SELECT FROM customers c WHERE c.id=b.customer_id)))
+      OR EXISTS (SELECT FROM matches m JOIN public.vehicles v ON v.id=m.vid WHERE v.purchase_invoice_id=b.id))
+    ORDER BY b.document_date DESC,b.id LIMIT n),
+  components AS (SELECT c.id,c.vehicle_id,c.serial_no AS title,c.component_type AS detail,
+    CASE WHEN strpos(public.vehicle_number_key(c.serial_no),public.vehicle_number_key(q))>0 THEN c.component_type ELSE 'linked vehicle' END AS matched_on
+    FROM matches m JOIN public.vehicle_components c ON c.vehicle_id=m.vid ORDER BY
+      (strpos(public.vehicle_number_key(c.serial_no),public.vehicle_number_key(q))>0) DESC,c.serial_no LIMIT n)
+  SELECT jsonb_build_object('vehicles',coalesce((SELECT jsonb_agg(vehicles) FROM vehicles),'[]'),
+    'customers',coalesce((SELECT jsonb_agg(customers) FROM customers),'[]'),
+    'invoices',coalesce((SELECT jsonb_agg(invoices) FROM invoices),'[]'),
+    'components',coalesce((SELECT jsonb_agg(components) FROM components),'[]')) INTO result;
+  RETURN result;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.customer_360(customer_id uuid) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$
+DECLARE cid uuid:=customer_id; result jsonb;
+BEGIN
+  IF NOT(public.has_permission('vehicles.read') AND public.has_permission('customers.read')) THEN RAISE EXCEPTION 'Customer and vehicle access required'; END IF;
+  SELECT jsonb_build_object('name',c.name,'mobile',c.phone,'village',c.village,'address',c.address,
+    'vehicles',coalesce((SELECT jsonb_agg(public.vehicle_360(v.id)) FROM public.vehicles v WHERE EXISTS
+      (SELECT FROM public.vehicle_ownership o WHERE o.vehicle_id=v.id AND o.customer_id=cid)),'[]'),
+    'invoices',CASE WHEN public.has_permission('invoices.read') THEN coalesce((SELECT jsonb_agg(jsonb_build_object(
+      'id',b.id,'number',b.number,'date',b.document_date,'total',b.total,'balance',b.total-b.amount_paid))
+      FROM public.billing_documents b WHERE b.customer_id=cid AND b.kind='invoice' AND b.cancelled_at IS NULL),'[]') END,
+    'jobs',coalesce((SELECT jsonb_agg(jsonb_build_object('number',j.number,'status',j.status,'date',j.received_at))
+      FROM public.service_jobs j WHERE j.customer_id=cid AND public.has_permission('service.read') AND public.ws_job_access(j.id)),'[]'))
+    INTO result FROM public.customers c WHERE c.id=cid;
+  IF result IS NULL THEN RAISE EXCEPTION 'Customer not found'; END IF;
+  RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION public.db_search(text,jsonb,int),public.customer_360(uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.db_search(text,jsonb,int),public.customer_360(uuid) TO authenticated;
+CREATE TABLE IF NOT EXISTS public.export_templates(
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text NOT NULL CHECK(length(trim(name)) BETWEEN 1 AND 100),
+  dataset text NOT NULL CHECK(dataset IN ('vehicles','customers','sales','components','registrations','ownership','stock','full_register')),
+  columns jsonb NOT NULL CHECK(jsonb_typeof(columns)='array'),filters jsonb NOT NULL DEFAULT '{}',
+  sheet_layout text NOT NULL CHECK(sheet_layout IN ('single','multi')), sheets jsonb NOT NULL DEFAULT '{}',
+  owner uuid NOT NULL REFERENCES auth.users,shared boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS public.export_log(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),actor uuid NOT NULL REFERENCES auth.users,
+  dataset text NOT NULL,template_id uuid REFERENCES public.export_templates ON DELETE SET NULL,filters jsonb NOT NULL,
+  row_count integer NOT NULL CHECK(row_count>=0),created_at timestamptz NOT NULL DEFAULT now());
+ALTER TABLE public.export_templates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.export_log ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.export_templates,public.export_log FROM PUBLIC,anon,authenticated;
+GRANT SELECT ON public.export_templates,public.export_log TO authenticated;
+DROP POLICY IF EXISTS template_read ON public.export_templates;
+CREATE POLICY template_read ON public.export_templates FOR SELECT TO authenticated USING
+  (public.has_permission('vehicles.export') AND (owner=auth.uid() OR shared OR public.access_role()='owner'));
+DROP POLICY IF EXISTS export_admin ON public.export_log;
+CREATE POLICY export_admin ON public.export_log FOR SELECT TO authenticated USING(public.access_role()='owner');
+
+CREATE OR REPLACE FUNCTION public.export_template_save(p jsonb) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE old public.export_templates; saved public.export_templates;
+BEGIN
+  IF NOT public.has_permission('vehicles.export') THEN RAISE EXCEPTION 'Export permission required'; END IF;
+  IF jsonb_typeof(p->'columns') IS DISTINCT FROM 'array' OR jsonb_typeof(coalesce(p->'filters','{}'))<>'object'
+    OR jsonb_typeof(coalesce(p->'sheets','{}'))<>'object' THEN RAISE EXCEPTION 'Invalid template layout'; END IF;
+  IF EXISTS (SELECT FROM jsonb_each(coalesce(p->'sheets','{}')) WHERE jsonb_typeof(value)<>'array'
+    OR key NOT IN ('vehicles','full_register','components','registrations','ownership','sales','customers','stock'))
+    THEN RAISE EXCEPTION 'Invalid template sheet'; END IF;
+  IF EXISTS (SELECT FROM (SELECT p->'columns' AS cols UNION ALL SELECT value FROM jsonb_each(p->'sheets')) lists
+    WHERE jsonb_array_length(cols) NOT BETWEEN 1 AND 100 OR EXISTS (SELECT FROM jsonb_array_elements(cols) col
+      WHERE jsonb_typeof(col->'key') IS DISTINCT FROM 'string' OR jsonb_typeof(col->'header') IS DISTINCT FROM 'string'))
+    THEN RAISE EXCEPTION 'Choose columns with text headers'; END IF;
+  IF nullif(p->>'id','') IS NOT NULL THEN
+    SELECT * INTO STRICT old FROM public.export_templates WHERE id=(p->>'id')::uuid FOR UPDATE;
+    IF old.owner<>auth.uid() AND public.access_role()<>'owner' THEN RAISE EXCEPTION 'Template owner required'; END IF;
+  END IF;
+  INSERT INTO public.export_templates(id,name,dataset,columns,filters,sheet_layout,sheets,owner,shared)
+    VALUES(coalesce(old.id,gen_random_uuid()),trim(p->>'name'),p->>'dataset',p->'columns',coalesce(p->'filters','{}'),
+      p->>'sheet_layout',coalesce(p->'sheets','{}'),coalesce(old.owner,auth.uid()),coalesce((p->>'shared')::boolean,false))
+    ON CONFLICT(id) DO UPDATE SET name=excluded.name,dataset=excluded.dataset,columns=excluded.columns,filters=excluded.filters,
+      sheet_layout=excluded.sheet_layout,sheets=excluded.sheets,shared=excluded.shared,updated_at=clock_timestamp() RETURNING * INTO saved;
+  INSERT INTO public.access_audit(actor,action,target,details) VALUES(auth.uid(),'save_export_template',saved.id::text,
+    jsonb_build_object('before',to_jsonb(old),'after',to_jsonb(saved)));
+  RETURN saved.id;
+END $$;
+CREATE OR REPLACE FUNCTION public.export_template_delete(id uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE old public.export_templates;
+BEGIN
+  IF NOT public.has_permission('vehicles.export') THEN RAISE EXCEPTION 'Export permission required'; END IF;
+  DELETE FROM public.export_templates t WHERE t.id=$1 AND (t.owner=auth.uid() OR public.access_role()='owner') RETURNING * INTO STRICT old;
+  INSERT INTO public.access_audit(actor,action,target,details) VALUES(auth.uid(),'delete_export_template',old.id::text,jsonb_build_object('before',to_jsonb(old)));
+END $$;
+
+CREATE OR REPLACE FUNCTION public.export_source(ds text,f jsonb) RETURNS SETOF jsonb LANGUAGE plpgsql STABLE SET search_path='' AS $$
+DECLARE term text:=coalesce(f->>'q',''); scoped boolean:=(f-ARRAY['q','root_dataset','from','to','balance_due','ids','template_id']) <> '{}';
+  matched_ids jsonb;
+BEGIN
+  IF f->>'database_results'='true' THEN
+    SELECT coalesce(jsonb_agg(hit->'id'),'[]') INTO matched_ids
+    FROM jsonb_array_elements(public.db_search(term,f-ARRAY['database_results','q','root_dataset','linked_only','template_id'],50)
+      -> (CASE ds WHEN 'components' THEN 'components' WHEN 'customers' THEN 'customers' WHEN 'sales' THEN 'invoices' ELSE 'vehicles' END)) hit;
+    f:='{}'; term:=''; scoped:=false;
+  END IF;
+  IF ds='stock' THEN
+    IF NOT public.has_permission('inventory.read') THEN RAISE EXCEPTION 'Inventory read permission required'; END IF;
+    RETURN QUERY SELECT jsonb_build_object('model',i.item_name,'sku',i.sku_or_code,'quantity',i.qty_available,'reserved',i.qty_reserved)
+      FROM public.inventory i WHERE strpos(lower(concat_ws(' ',i.item_name,i.sku_or_code)),lower(term))>0
+      AND (NOT(f?'ids') OR f->>'root_dataset'='sales' OR (f->'ids') ? i.id::text)
+      AND (matched_ids IS NULL OR EXISTS (SELECT FROM public.vehicles v WHERE v.stock_id=i.id AND matched_ids ? v.id::text))
+      AND (NOT scoped OR EXISTS (SELECT FROM public.register_matches(term,f) m JOIN public.vehicles v ON v.id=m.vid WHERE v.stock_id=i.id))
+      ORDER BY i.item_name,i.id;
+  ELSIF ds='customers' THEN
+    IF NOT public.has_permission('customers.read') THEN RAISE EXCEPTION 'Customer read permission required'; END IF;
+    RETURN QUERY SELECT jsonb_build_object('owner',c.name,'mobile',c.phone,'alt_mobile',c.alt_phone,'village',c.village,
+      'tehsil',c.tehsil,'district',c.district,'address',c.address,'gstin',c.gstin) FROM public.customers c
+      WHERE (matched_ids IS NULL OR matched_ids ? c.id::text) AND (nullif(f->>'customer_id','') IS NULL OR c.id::text=f->>'customer_id') AND
+      ((NOT scoped AND NOT(f ?| ARRAY['from','to','balance_due','ids']) AND (term='' OR public.customer_match(c.name,c.phone,term) IS NOT NULL)) OR EXISTS
+        (SELECT FROM public.register_matches(term,f) m JOIN public.vehicle_ownership o ON o.vehicle_id=m.vid WHERE o.customer_id=c.id))
+      ORDER BY c.name,c.id;
+  ELSIF ds='sales' THEN
+    IF NOT public.has_permission('invoices.read') THEN RAISE EXCEPTION 'Invoice read permission required'; END IF;
+    RETURN QUERY SELECT jsonb_build_object('invoice',b.number,'invoice_date',b.document_date,'amount',b.total,'paid',b.amount_paid,
+      'balance',b.total-b.amount_paid,'owner',c.name,'mobile',c.phone,'payment_mode',pay.methods,'payments',pay.details)
+      FROM public.billing_documents b LEFT JOIN public.customers c ON c.id=b.customer_id AND public.has_permission('customers.read')
+      LEFT JOIN LATERAL (SELECT string_agg(DISTINCT p.method::text,', ') methods,string_agg(concat_ws(' ',p.paid_at::date,p.amount,p.method),' | ' ORDER BY p.paid_at) details
+        FROM public.billing_payments p WHERE p.invoice_id=b.id) pay ON true
+      WHERE b.kind='invoice' AND b.cancelled_at IS NULL AND (matched_ids IS NULL OR matched_ids ? b.id::text) AND (NOT(f?'ids') OR (f->'ids') ? b.id::text)
+      AND (f->>'linked_only'='true' OR nullif(f->>'from','') IS NULL OR b.document_date>=(f->>'from')::date)
+      AND (f->>'linked_only'='true' OR nullif(f->>'to','') IS NULL OR b.document_date<=(f->>'to')::date)
+      AND (NOT coalesce((f->>'balance_due')::boolean,false) OR b.total>b.amount_paid)
+      AND ((NOT scoped AND (term='' OR strpos(lower(b.number),lower(term))>0 OR public.customer_match(c.name,c.phone,term) IS NOT NULL))
+        OR (public.has_permission('customers.read') AND f-ARRAY['customer_id','root_dataset','template_id']='{}' AND b.customer_id::text=f->>'customer_id')
+        OR EXISTS (SELECT FROM public.register_matches(term,CASE WHEN f->>'linked_only'='true' THEN f ELSE f-ARRAY['from','to'] END) m JOIN public.vehicles v ON v.id=m.vid WHERE v.purchase_invoice_id=b.id))
+      ORDER BY b.document_date,b.number;
+  ELSE
+    RETURN QUERY SELECT to_jsonb(row_data) FROM (
+      SELECT v.chassis_no AS chassis,v.motor_no AS motor,v.engine_no AS engine,v.vehicle_type AS type,v.model_name AS model,
+        v.variant,v.colour,v.lifecycle AS status,v.location,v.received_date,v.supplier,v.supplier_invoice,v.shipment_ref,
+        CASE WHEN ds='registrations' THEN hist.registration_no ELSE v.registration_no END AS registration,
+        CASE WHEN ds='registrations' THEN hist.registration_date ELSE reg.registration_date END AS registration_date,
+        CASE WHEN ds='registrations' THEN hist.rto ELSE reg.rto END AS rto,hist.is_current,
+        part.component_type,part.serial_no AS serial,part.installed_on,part.removed_on,part.removal_reason,
+        c.name AS owner,c.phone AS mobile,c.alt_phone AS alt_mobile,c.address,c.village,c.tehsil,c.district,c.gstin,
+        o.from_date,o.to_date,o.source,b.number AS invoice,b.document_date AS invoice_date,b.total AS amount,b.amount_paid AS paid,
+        b.total-b.amount_paid AS balance,(SELECT string_agg(DISTINCT method::text,', ') FROM public.billing_payments WHERE invoice_id=b.id) AS payment_mode,
+        parts.batteries,parts.chargers,parts.controllers,
+        (SELECT string_agg(concat_ws(' ',h.name,ow.from_date,ow.to_date),' | ' ORDER BY ow.from_date)
+          FROM public.vehicle_ownership ow JOIN public.customers h ON h.id=ow.customer_id WHERE public.has_permission('customers.read') AND ow.vehicle_id=v.id) AS ownership_history,
+        d.signed_at::date AS delivery_date,d.assigned_email AS delivered_by,
+        (SELECT result FROM public.pdi_checks p WHERE p.vehicle_id=v.id AND public.has_permission('pdi.read')
+          AND (public.access_role()<>'pdi' OR p.inspector_email=public.ws_email()) ORDER BY p.created_at DESC LIMIT 1) AS pdi_result,
+        (SELECT string_agg(w.end_date::text,', ' ORDER BY w.end_date) FROM public.warranties w WHERE w.vehicle_id=v.id AND public.has_permission('warranty.read')) AS warranty_ends,
+        jobs.service_count,jobs.last_service
+      FROM public.register_matches(term,f) m JOIN public.vehicles v ON v.id=m.vid
+      LEFT JOIN public.vehicle_components part ON ds='components' AND part.vehicle_id=v.id
+      LEFT JOIN public.vehicle_registrations hist ON ds='registrations' AND hist.vehicle_id=v.id
+      LEFT JOIN public.vehicle_registrations reg ON reg.vehicle_id=v.id AND reg.is_current
+      LEFT JOIN public.vehicle_ownership o ON ds='ownership' AND o.vehicle_id=v.id
+      LEFT JOIN public.customers c ON c.id=coalesce(o.customer_id,v.customer_id) AND public.has_permission('customers.read')
+      LEFT JOIN public.billing_documents b ON b.id=v.purchase_invoice_id AND public.has_permission('invoices.read')
+      LEFT JOIN public.delivery_checklist d ON d.vehicle_id=v.id AND public.has_permission('delivery.read')
+        AND (public.has_permission('service.write') OR d.assigned_email=public.ws_email())
+      LEFT JOIN LATERAL (SELECT string_agg(serial_no,', ' ORDER BY created_at) FILTER(WHERE component_type='battery') batteries,
+        string_agg(serial_no,', ' ORDER BY created_at) FILTER(WHERE component_type='charger') chargers,
+        string_agg(serial_no,', ' ORDER BY created_at) FILTER(WHERE component_type='controller') controllers
+        FROM public.vehicle_components WHERE vehicle_id=v.id AND removed_on IS NULL) parts ON true
+      LEFT JOIN LATERAL (SELECT count(*) service_count,max(received_at) last_service FROM public.service_jobs j
+        WHERE public.has_permission('service.read') AND j.vehicle_id=v.id AND public.ws_job_access(j.id)) jobs ON true
+      WHERE (matched_ids IS NULL OR matched_ids ? (CASE WHEN ds='components' THEN part.id ELSE v.id END)::text)
+        AND (ds<>'components' OR part.id IS NOT NULL) AND (ds<>'registrations' OR hist.id IS NOT NULL)
+        AND (ds<>'ownership' OR (public.has_permission('customers.read') AND o.id IS NOT NULL))
+      ORDER BY v.chassis_no,part.created_at,hist.created_at,o.from_date
+    ) row_data;
+  END IF;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.export_collect(ds text,cols text[],f jsonb,lim int,preview boolean) RETURNS jsonb
+LANGUAGE plpgsql SET search_path='' AS $$
+DECLARE allowed text[]; dropped text[]; records jsonb; logged public.export_log;
+  cap int:=least(greatest(coalesce(lim,50000),1),50000);
+BEGIN
+  IF NOT(public.has_permission('vehicles.export') AND public.has_permission('vehicles.read')) THEN RAISE EXCEPTION 'Vehicle export permission required'; END IF;
+  IF ds IS NULL OR ds NOT IN ('vehicles','full_register','customers','sales','components','registrations','ownership','stock') THEN RAISE EXCEPTION 'Unknown dataset'; END IF;
+  IF ds='ownership' AND NOT public.has_permission('customers.read') THEN RAISE EXCEPTION 'Customer read permission required'; END IF;
+  SELECT array_agg(k ORDER BY n) FILTER(WHERE ok),array_agg(k ORDER BY n) FILTER(WHERE NOT ok) INTO allowed,dropped
+    FROM unnest(cols) WITH ORDINALITY t(k,n) CROSS JOIN LATERAL (SELECT CASE
+      WHEN k=ANY(string_to_array('owner mobile alt_mobile village tehsil district address gstin ownership_history from_date to_date source',' ')) THEN public.has_permission('customers.read')
+      WHEN k=ANY(string_to_array('invoice invoice_date amount paid balance payment_mode payments',' ')) THEN public.has_permission('invoices.read')
+      WHEN k IN ('delivery_date','delivered_by') THEN public.has_permission('delivery.read')
+      WHEN k='pdi_result' THEN public.has_permission('pdi.read')
+      WHEN k='warranty_ends' THEN public.has_permission('warranty.read')
+      WHEN k IN ('last_service','service_count') THEN public.has_permission('service.read')
+      ELSE k=ANY(string_to_array('model sku quantity reserved chassis motor engine type variant colour status location received_date supplier supplier_invoice shipment_ref registration registration_date rto is_current component_type serial installed_on removed_on removal_reason batteries chargers controllers',' ')) END ok) access;
+  SELECT coalesce(jsonb_agg(coalesce((SELECT jsonb_object_agg(key,value) FROM jsonb_each(x) WHERE key=ANY(allowed)),'{}')),'[]') INTO records
+    FROM (SELECT x FROM public.export_source(ds,f) x LIMIT CASE WHEN preview THEN least(cap,20) ELSE cap+1 END) limited;
+  IF jsonb_array_length(records)>cap THEN RAISE EXCEPTION 'Export exceeds % rows. Narrow the filters.',cap; END IF;
+  IF NOT preview THEN
+    INSERT INTO public.export_log(actor,dataset,template_id,filters,row_count) VALUES(auth.uid(),ds,nullif(f->>'template_id','')::uuid,f,jsonb_array_length(records)) RETURNING * INTO logged;
+    INSERT INTO public.access_audit(actor,action,target,details) VALUES(auth.uid(),'export_dataset',ds,to_jsonb(logged));
+  END IF;
+  RETURN jsonb_build_object('columns',coalesce(allowed,'{}'),'dropped',coalesce(dropped,'{}'),'rows',records);
+END $$;
+CREATE OR REPLACE FUNCTION public.export_dataset(dataset text,columns text[],filters jsonb,lim int DEFAULT 50000) RETURNS jsonb
+LANGUAGE sql SECURITY DEFINER SET search_path='' AS $$ SELECT public.export_collect(dataset,columns,filters,lim,false) $$;
+CREATE OR REPLACE FUNCTION public.export_preview(dataset text,columns text[],filters jsonb) RETURNS jsonb
+LANGUAGE sql SECURITY DEFINER SET search_path='' AS $$ SELECT public.export_collect(dataset,columns,filters,20,true) $$;
+REVOKE ALL ON FUNCTION public.export_source(text,jsonb),public.export_collect(text,text[],jsonb,int,boolean) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.export_dataset(text,text[],jsonb,int),public.export_preview(text,text[],jsonb),public.export_template_save(jsonb),public.export_template_delete(uuid) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.export_dataset(text,text[],jsonb,int),public.export_preview(text,text[],jsonb),public.export_template_save(jsonb),public.export_template_delete(uuid) TO authenticated;
+CREATE OR REPLACE FUNCTION public.db_search_export(q text,filters jsonb,lim int) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE result jsonb; logged public.export_log;
+BEGIN
+ IF NOT public.has_permission('vehicles.export') THEN RAISE EXCEPTION 'Export permission required'; END IF;
+ result:=public.db_search(q,filters,lim);
+ INSERT INTO public.export_log(actor,dataset,filters,row_count) SELECT auth.uid(),'database_csv',filters||jsonb_build_object('q',q),
+   sum(jsonb_array_length(value)) FROM jsonb_each(result) RETURNING * INTO logged;
+ INSERT INTO public.access_audit(actor,action,target,details) VALUES(auth.uid(),'export_dataset','database_csv',to_jsonb(logged));
+ RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION public.db_search_export(text,jsonb,int) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.db_search_export(text,jsonb,int) TO authenticated;
+-- Read all selected sheets under a single RPC transaction. If a sheet exceeds the
+-- workbook cap, its siblings and their audit entries roll back together.
+CREATE OR REPLACE FUNCTION public.export_workbook(dataset text,sheets jsonb,filters jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE sheet record; report jsonb; result jsonb:='{}'; remaining int:=50000; scope jsonb;
+BEGIN
+ IF NOT public.has_permission('vehicles.export') THEN RAISE EXCEPTION 'Export permission required'; END IF;
+ IF jsonb_typeof(sheets) IS DISTINCT FROM 'object' OR sheets='{}' THEN RAISE EXCEPTION 'Choose at least one sheet'; END IF;
+ FOR sheet IN SELECT key,value FROM jsonb_each(sheets) LOOP
+   scope:=filters||jsonb_build_object('root_dataset',dataset);
+   IF sheet.key<>dataset AND dataset NOT IN ('customers','sales','stock') THEN
+     scope:=scope||'{"linked_only":true}'::jsonb;
+   END IF;
+   report:=public.export_collect(sheet.key,ARRAY(SELECT jsonb_array_elements_text(sheet.value)),scope,remaining,false);
+   remaining:=remaining-jsonb_array_length(report->'rows');
+   IF remaining<0 THEN RAISE EXCEPTION 'Workbook exceeds 50,000 rows. Narrow the filters.'; END IF;
+   IF jsonb_array_length(report->'columns')=0 THEN RAISE EXCEPTION 'No permitted columns for %',sheet.key; END IF;
+   result:=result||jsonb_build_object(sheet.key,report);
+ END LOOP;
+ RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION public.export_workbook(text,jsonb,jsonb) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.export_workbook(text,jsonb,jsonb) TO authenticated;
 NOTIFY pgrst,'reload schema';
 COMMIT;

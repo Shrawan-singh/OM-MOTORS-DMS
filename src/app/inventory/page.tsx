@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useDealerStore } from '@/lib/store/dealer-store';
 import { useAuth } from '@/lib/auth/provider';
@@ -73,6 +74,7 @@ export default function Inventory() {
           <h1>Inventory</h1>
           <p>Actual stock receipts and movements. Product catalogue entries do not create stock.</p>
         </div>
+        {can('vehicles.write') && <Link className="primary-button" href="/vehicles/receive">Receive vehicle</Link>}
       </div>
 
       {error && (

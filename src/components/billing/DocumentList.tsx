@@ -30,7 +30,7 @@ export function DocumentList({ kind }: { kind: 'quotation' | 'invoice' }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const module = kind === 'invoice' ? 'invoices' : 'quotations';
+  const documentModule = kind === 'invoice' ? 'invoices' : 'quotations';
 
   const rows = documents.filter(
     (d) =>
@@ -63,11 +63,11 @@ export function DocumentList({ kind }: { kind: 'quotation' | 'invoice' }) {
           <p className="eyebrow">DOCUMENTS & BILLING</p>
           <h1>{kind === 'invoice' ? 'Invoices & payments' : 'Quotations'}</h1>
           <p>
-            {rows.length} saved {module}. Open a document to edit its number, items and GST.
+            {rows.length} saved {documentModule}. Open a document to edit its number, items and GST.
           </p>
         </div>
-        {can(`${module}.write`) && (
-          <Link className="primary-button" href={`/${module}/new`}>
+        {can(`${documentModule}.write`) && (
+          <Link className="primary-button" href={`/${documentModule}/new`}>
             <Plus size={16} />
             New {kind}
           </Link>
@@ -158,19 +158,19 @@ export function DocumentList({ kind }: { kind: 'quotation' | 'invoice' }) {
                   className="secondary-button"
                   target="_blank"
                   rel="noopener"
-                  href={`/${module}/${d.id}/print`}
+                  href={`/${documentModule}/${d.id}/print`}
                 >
                   <Printer size={14} />
                   Print / PDF
                 </Link>
 
-                {can(`${module}.write`) && (
+                {can(`${documentModule}.write`) && (
                   <Link
                     className="secondary-button"
                     href={
                       d.service_job_id
                         ? `/service?job=${d.service_job_id}`
-                        : `/${module}/${d.id}`
+                        : `/${documentModule}/${d.id}`
                     }
                   >
                     <Pencil size={14} />
@@ -253,7 +253,7 @@ export function DocumentList({ kind }: { kind: 'quotation' | 'invoice' }) {
       {/* Empty state */}
       {!loading && !loadError && !rows.length && (
         <div className="empty-state">
-          No {module} found. Create your first {kind} to get started.
+          No {documentModule} found. Create your first {kind} to get started.
         </div>
       )}
 

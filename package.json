@@ -6,10 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc --noEmit && next lint",
+    "lint": "tsc --noEmit && eslint src",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
-    "test": "node tests/access.test.mjs && node tests/billing.test.mjs && node tests/workshop.test.mjs && node tests/audit.test.mjs",
+    "test": "node tests/access.test.mjs && node tests/billing.test.mjs && node tests/workshop.test.mjs && node tests/audit.test.mjs && node tests/vehicles.test.mjs && node tests/routes.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

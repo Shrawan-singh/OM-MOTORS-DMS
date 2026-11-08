@@ -24,8 +24,11 @@ export async function middleware(request: NextRequest) {
   if (publicPage) { response.headers.set('Cache-Control', 'private, no-store'); return response; }
   const { data, error } = await client.rpc('my_access');
   if (error || !data?.role) return redirect('/access-pending');
-  if (path === '/' && data.role !== 'owner' && !data.permissions?.includes('dashboard.read') && data.permissions?.includes('service.read')) return redirect('/service');
-  const permission = `${routeModule(path)}.${path === '/quotations/new' || path === '/invoices/new' ? 'write' : 'read'}`;
+  if (path === '/' && data.role !== 'owner' && !data.permissions?.includes('dashboard.read')) {
+    if (data.permissions?.includes('service.read')) return redirect('/service');
+    if (data.permissions?.includes('vehicles.read')) return redirect('/vehicles');
+  }
+  const permission = `${routeModule(path)}.${['/quotations/new', '/invoices/new', '/vehicles/receive'].includes(path) ? 'write' : 'read'}`;
   const allowed = data.role === 'owner' || (path !== '/admin' && data.permissions?.includes(permission));
   response.headers.set('Cache-Control', 'private, no-store');
   return allowed ? response : redirect('/access-pending?reason=permission');

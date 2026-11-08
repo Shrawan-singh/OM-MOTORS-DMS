@@ -9,6 +9,10 @@ import { useAuth } from '@/lib/auth/provider';
 import { BillingLine, BillingDocument, lineTotals, money } from '@/lib/billing/types';
 import { QuickAddCustomerModal } from '@/components/customers/QuickAddCustomerModal';
 
+import { SaleVehiclePicker } from '@/components/vehicles/SaleVehiclePicker';
+import { vehicleTypes, vehicleRpc } from '@/lib/vehicles/register';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+
 type EditableLine = Omit<BillingLine, 'taxable' | 'tax' | 'total' | 'gstRatePct' | 'unitPrice'> & {
   gstRatePct: number | '';
   unitPrice: number | '';
@@ -54,6 +58,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
   const [version, setVersion] = useState<string>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [addCustomer, setAddCustomer] = useState(false);
 
   useEffect(() => {
@@ -96,10 +101,21 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
   function selectProduct(index: number, value: string) {
     const p = store.products.find((p) => p.id === value);
     if (!p) {
-      change(index, { productId: null, inventoryId: null });
+      change(index, {
+        vehicleId: undefined,
+        chassisNo: undefined,
+        motorNo: undefined,
+        engineNo: undefined,
+        productId: null,
+        inventoryId: null,
+      });
       return;
     }
     change(index, {
+      vehicleId: undefined,
+      chassisNo: undefined,
+      motorNo: undefined,
+      engineNo: undefined,
       productId: p.id,
       inventoryId: store.inventory.find((i) => i.itemId === p.id)?.id || null,
       name: [p.brand, p.model_name, p.variant].filter(Boolean).join(' '),
@@ -144,6 +160,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
         expectedUpdatedAt: version,
       });
       router.push(`/${kind === 'invoice' ? 'invoices' : 'quotations'}/${d.id}`);
+      setLines(d.items);
       setVersion(d.updated_at);
       setNumber(d.number);
     } catch (e) {
@@ -153,12 +170,13 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
     }
   }
 
-  const module = kind === 'invoice' ? 'invoices' : 'quotations';
+  const documentModule = kind === 'invoice' ? 'invoices' : 'quotations';
 
   if (id && !store.loading && !existing) {
     return (
       <div className="admin-panel">
-        Document not found or access denied. <Link href={`/${module}`}>Back to {module}</Link>
+        Document not found or access denied.{' '}
+        <Link href={`/${documentModule}`}>Back to {documentModule}</Link>
       </div>
     );
   }
@@ -168,8 +186,8 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
       {/* Heading */}
       <div className="page-heading">
         <div>
-          <Link className="back-link" href={`/${module}`}>
-            <ArrowLeft size={14} /> {module}
+          <Link className="back-link" href={`/${documentModule}`}>
+            <ArrowLeft size={14} /> {documentModule}
           </Link>
           <h1>
             {id ? 'Edit' : 'New'} {kind}
@@ -177,7 +195,11 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
           <p>Saved to Supabase. Prices exclude GST; discount is a total amount per line.</p>
         </div>
         {existing && (
-          <Link className="secondary-button" target="_blank" href={`/${module}/${existing.id}/print`}>
+          <Link
+            className="secondary-button"
+            target="_blank"
+            href={`/${documentModule}/${existing.id}/print`}
+          >
             <Printer size={15} />
             Print / PDF
           </Link>
@@ -191,7 +213,9 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
       )}
 
       <form onSubmit={save} className="billing-editor">
-        <fieldset disabled={busy || store.loading || !!store.error || !can(`${module}.write`)}>
+        <fieldset
+          disabled={busy || store.loading || !!store.error || !can(`${documentModule}.write`)}
+        >
           {/* Document details */}
           <section className="admin-panel">
             <div className="form-grid">
@@ -207,7 +231,12 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
 
               <label>
                 Document date
-                <input required type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                <input
+                  required
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                />
               </label>
 
               {kind === 'quotation' && (
@@ -277,8 +306,8 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
               <div>
                 <h2>Items</h2>
                 <p>
-                  Select a catalogue product or type a custom item. Saved product GST is prefilled and
-                  can be changed for this bill.
+                  Select a catalogue product or type a custom item. Saved product GST is prefilled
+                  and can be changed for this bill.
                 </p>
               </div>
             </div>
@@ -316,6 +345,20 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
                       </select>
                     </label>
 
+                    {l.productId &&
+                      vehicleTypes.includes(
+                        store.products.find((p) => p.id === l.productId)?.category || ''
+                      ) &&
+                      can(kind === 'invoice' ? 'vehicles.write' : 'vehicles.read') && (
+                        <SaleVehiclePicker
+                          productId={l.productId}
+                          line={{ vehicleId: l.vehicleId, chassisNo: l.chassisNo, qty: l.qty }}
+                          backfill={
+                            !!existing && kind === 'invoice' && !existing.items[i]?.vehicleId
+                          }
+                          onChange={(patch) => change(i, patch as Partial<EditableLine>)}
+                        />
+                      )}
                     <label className="wide-field">
                       Item name / description
                       <input
@@ -342,6 +385,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
                         type="number"
                         min="1"
                         step="1"
+                        readOnly={!!l.chassisNo}
                         value={l.qty}
                         onChange={(e) => change(i, { qty: Number(e.target.value) })}
                       />
@@ -453,6 +497,42 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
         </fieldset>
       </form>
 
+      {existing &&
+        kind === 'invoice' &&
+        !existing.service_job_id &&
+        can('invoices.write') &&
+        can('vehicles.write') &&
+        can('service_approve.write') && (
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={busy}
+            onClick={() => setCancelOpen(true)}
+          >
+            Cancel sales invoice
+          </button>
+        )}
+      <ConfirmDialog
+        isOpen={cancelOpen}
+        title="Cancel sales invoice"
+        message="Release the chassis and restore the invoiced stock."
+        confirmLabel="Cancel invoice"
+        requireInput
+        onCancel={() => setCancelOpen(false)}
+        onConfirm={async (reason) => {
+          setCancelOpen(false);
+          setBusy(true);
+          try {
+            await vehicleRpc('vehicle_cancel_invoice', { p: { invoice_id: id, reason } });
+            await store.refresh();
+            router.push('/invoices');
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Unable to cancel invoice');
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
       <QuickAddCustomerModal
         isOpen={addCustomer}
         onClose={() => setAddCustomer(false)}

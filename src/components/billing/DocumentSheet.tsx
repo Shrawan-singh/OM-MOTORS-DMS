@@ -65,6 +65,9 @@ export function DocumentSheet({ doc }: { doc: BillingDocument }) {
               <td>{i + 1}</td>
               <td>
                 <strong>{line.name}</strong>
+                {line.chassisNo && <small>Chassis {line.chassisNo}</small>}
+                {line.motorNo && <small>Motor {line.motorNo}</small>}
+                {line.engineNo && <small>Engine {line.engineNo}</small>}
                 {line.hsnCode && <small>HSN / SAC: {line.hsnCode}</small>}
               </td>
               <td>{line.qty}</td>

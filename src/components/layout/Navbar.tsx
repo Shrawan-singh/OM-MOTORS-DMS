@@ -32,6 +32,7 @@ const navLinks = [
   { href: '/catalogue', label: 'Product catalogue', icon: BookOpen, permission: 'catalogue.read' },
   { href: '/customers', label: 'Customers', icon: Users, permission: 'customers.read' },
   { href: '/inventory', label: 'Inventory', icon: Package, permission: 'inventory.read' },
+  { href: '/vehicles', label: 'Vehicles', icon: Tractor, permission: 'vehicles.read' },
   { href: '/quotations', label: 'Quotations', icon: FileText, permission: 'quotations.read' },
   { href: '/invoices', label: 'Invoices & payments', icon: Receipt, permission: 'invoices.read' },
   { href: '/receivables', label: 'Receivables', icon: CreditCard, permission: 'invoices.read' },
@@ -52,7 +53,7 @@ export function Navbar({ onOpenSearch, sidebarOpen, onCloseSidebar }: NavbarProp
       ? 'Team & permissions'
       : path === '/admin/audit'
       ? 'Audit logs'
-      : navLinks.find((l) => l.href === path)?.label || 'Dealership';
+      : navLinks.find((l) => l.href === path || (l.href !== '/' && path.startsWith(l.href + '/')))?.label || 'Dealership';
 
   return (
     <>

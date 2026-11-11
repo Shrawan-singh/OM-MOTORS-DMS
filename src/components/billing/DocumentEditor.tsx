@@ -31,12 +31,35 @@ const blank = (): EditableLine => ({
 
 const today = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id?: string }) {
+type EditorProps = { kind: 'quotation' | 'invoice'; id?: string };
+
+type Draft = {
+  requestId: string;
+  customer: string;
+  number: string;
+  date: string;
+  valid: string;
+  dueDate: string;
+  taxMode: 'cgst_sgst' | 'igst';
+  notes: string;
+  lines: EditableLine[];
+};
+
+export function DocumentEditor(props: EditorProps) {
+  const { email } = useAuth();
+  const query = useSearchParams();
+  const context = [props.kind, props.id || 'new', email, query.get('from'),
+    query.get('customerId'), query.get('productId') || query.get('vehicleId')];
+  const key = 'om.billing.draft.v1:' + JSON.stringify(context);
+  return <Editor key={key} {...props} draftKey={!props.id && email ? key : null} />;
+}
+
+function Editor({ kind, id, draftKey }: EditorProps & { draftKey: string | null }) {
   const query = useSearchParams();
   const router = useRouter();
   const store = useDealerStore();
   const { can } = useAuth();
-  const [requestId] = useState(() => crypto.randomUUID());
+  const [requestId, setRequestId] = useState(() => crypto.randomUUID());
   const initialized = useRef('');
 
   const sourceId = query.get('from');
@@ -60,6 +83,64 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
   const [error, setError] = useState('');
   const [cancelOpen, setCancelOpen] = useState(false);
   const [addCustomer, setAddCustomer] = useState(false);
+
+  const [pendingDraft, setPendingDraft] = useState<Draft | null>(null);
+  const [dirty, setDirty] = useState(false);
+  const [draftStatus, setDraftStatus] = useState('');
+  const [checkedDraft, setCheckedDraft] = useState(false);
+  const canWrite = can(kind === 'invoice' ? 'invoices.write' : 'quotations.write');
+
+  useEffect(() => {
+    try {
+      const raw = draftKey && canWrite ? sessionStorage.getItem(draftKey) : null;
+      if (raw) {
+        const draft: Draft = JSON.parse(raw);
+        if (typeof draft.requestId !== 'string' || !Array.isArray(draft.lines) || !draft.lines.length ||
+            !draft.lines.every(line => line && typeof line.name === 'string')) {
+          throw new Error('Unreadable draft');
+        }
+        setPendingDraft(draft);
+      }
+    } catch {
+      setDraftStatus('Is tab ka draft nahi khul saka.');
+    }
+    setCheckedDraft(true);
+  }, [draftKey, canWrite]);
+
+  useEffect(() => {
+    if (!draftKey || !canWrite || !dirty || pendingDraft || !checkedDraft) return;
+    const draft: Draft = { requestId, customer, number, date, valid, dueDate, taxMode, notes, lines };
+    try {
+      sessionStorage.setItem(draftKey, JSON.stringify(draft));
+      setDraftStatus('Draft is tab mein save hua.');
+    } catch {
+      setDraftStatus('Draft save nahi hua. Final save se pehle tab khula rakhein.');
+    }
+  }, [draftKey, canWrite, dirty, pendingDraft, checkedDraft, requestId, customer, number,
+      date, valid, dueDate, taxMode, notes, lines]);
+
+  function clearDraft() {
+    if (draftKey) {
+      try { sessionStorage.removeItem(draftKey); } catch { /* Storage can be disabled. */ }
+    }
+    setPendingDraft(null);
+    setDirty(false);
+    setDraftStatus('');
+  }
+
+  function restoreDraft(draft: Draft) {
+    setRequestId(draft.requestId);
+    setCustomer(draft.customer);
+    setNumber(draft.number);
+    setDate(draft.date);
+    setValid(draft.valid);
+    setDueDate(draft.dueDate);
+    setTaxMode(draft.taxMode);
+    setNotes(draft.notes);
+    setLines(draft.lines);
+    setPendingDraft(null);
+    setDirty(true);
+  }
 
   useEffect(() => {
     const d = existing || source;
@@ -159,6 +240,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
         sourceQuotationId: existing?.source_quotation_id || sourceId,
         expectedUpdatedAt: version,
       });
+      clearDraft();
       router.push(`/${kind === 'invoice' ? 'invoices' : 'quotations'}/${d.id}`);
       setLines(d.items);
       setVersion(d.updated_at);
@@ -192,7 +274,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
           <h1>
             {id ? 'Edit' : 'New'} {kind}
           </h1>
-          <p>Saved to Supabase. Prices exclude GST; discount is a total amount per line.</p>
+          <p>Prices exclude GST. Discount poori line par lagta hai.</p>
         </div>
         {existing && (
           <Link
@@ -212,9 +294,17 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
         </div>
       )}
 
-      <form onSubmit={save} className="billing-editor">
+      {pendingDraft && canWrite && <section className="admin-panel mb-4" aria-label="Saved draft">
+        <p>Is kaam ka adhura {kind} is tab mein mila.</p>
+        <div className="document-actions">
+          <button className="primary-button" disabled={store.loading} onClick={() => restoreDraft(pendingDraft)}>Pichhla draft kholein</button>
+          <button className="secondary-button" onClick={clearDraft}>Draft hata kar naya banayein</button>
+        </div>
+      </section>}
+      {draftStatus && <p role="status" className="info-note">{draftStatus}</p>}
+      <form onSubmit={save} onChangeCapture={() => setDirty(true)} className="billing-editor">
         <fieldset
-          disabled={busy || store.loading || !!store.error || !can(`${documentModule}.write`)}
+          disabled={busy || store.loading || !!store.error || !canWrite || !!pendingDraft || !checkedDraft}
         >
           {/* Document details */}
           <section className="admin-panel">
@@ -322,7 +412,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
                       className="secondary-button"
                       disabled={lines.length === 1}
                       aria-label={`Remove item ${i + 1}`}
-                      onClick={() => setLines(lines.filter((_, j) => i !== j))}
+                      onClick={() => { setDirty(true); setLines(lines.filter((_, j) => i !== j)); }}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -457,7 +547,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
             <button
               type="button"
               className="secondary-button mt-5"
-              onClick={() => setLines([...lines, blank()])}
+              onClick={() => { setDirty(true); setLines([...lines, blank()]); }}
             >
               <Plus size={15} />
               Add item
@@ -536,7 +626,7 @@ export function DocumentEditor({ kind, id }: { kind: 'quotation' | 'invoice'; id
       <QuickAddCustomerModal
         isOpen={addCustomer}
         onClose={() => setAddCustomer(false)}
-        onSuccess={setCustomer}
+        onSuccess={value => { setDirty(true); setCustomer(value); }}
       />
     </div>
   );

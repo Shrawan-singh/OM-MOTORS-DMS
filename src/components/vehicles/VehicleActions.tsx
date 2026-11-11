@@ -150,6 +150,9 @@ export function VehicleActions({ record, reload }: { record: Detail; reload: () 
   }
   return (
     <section aria-label="Vehicle actions" className="admin-panel space-y-4">
+      {record.vehicle.lifecycle === 'delivered' && !current && (
+        <p>RC mil gayi hai? <strong>Add registration</strong> chunein.</p>
+      )}
       <div className="flex gap-2 flex-wrap">
         {Object.entries(actions).map(([key, title]) => (
           <button

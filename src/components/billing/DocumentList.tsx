@@ -1,4 +1,5 @@
 'use client';
+import { PaymentAmount } from '@/components/billing/PaymentAmount';
 import { ExportLink } from '@/components/vehicles/ExportLink';
 
 import { useState } from 'react';
@@ -200,7 +201,8 @@ export function DocumentList({ kind }: { kind: 'quotation' | 'invoice' }) {
                       className="primary-button"
                       onClick={() => {
                         setSelected(d);
-                        setAmount(String(d.total - d.amount_paid));
+                        setAmount('');
+                        setMethod('upi');
                         setRequestId(crypto.randomUUID());
                         setReference('');
                         setError('');
@@ -283,19 +285,7 @@ export function DocumentList({ kind }: { kind: 'quotation' | 'invoice' }) {
               </p>
             )}
 
-            <label>
-              Amount (₹)
-              <input
-                required
-                min="0.01"
-                max={selected.total - selected.amount_paid}
-                step="0.01"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </label>
-
+            <PaymentAmount due={selected.total - selected.amount_paid} amount={amount} onChange={setAmount} />
             <label>
               Method
               <select value={method} onChange={(e) => setMethod(e.target.value)}>

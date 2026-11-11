@@ -13,24 +13,35 @@ import {
   FileText,
   Clock,
   ChevronRight,
-  ShieldCheck,
   Receipt,
   X,
   MessageSquare,
   CreditCard
 } from 'lucide-react';
 import { QuickAddCustomerModal } from '@/components/customers/QuickAddCustomerModal';
-import { Customer } from '@/types';
+import { useSearchParams } from 'next/navigation';
 import { CustomerHistory } from '@/components/workshop/CustomerHistory';
 import { WhatsAppReminderModal } from '@/components/receivables/WhatsAppReminderModal';
 import { CustomerLedgerModal } from '@/components/receivables/CustomerLedgerModal';
 import { money } from '@/lib/billing/types';
 
 export default function CustomersPage() {
+  return <React.Suspense><CustomerRoute /></React.Suspense>;
+}
+
+function CustomerRoute() {
+  const params = useSearchParams();
+  const customerId = params.get('id') || '';
+  const search = params.get('search') || '';
+  return <CustomerDirectory key={customerId + ':' + search} initialId={customerId} initialSearch={search} />;
+}
+
+function CustomerDirectory({ initialId, initialSearch }: { initialId: string; initialSearch: string }) {
   const { can } = useAuth();
-  const { customers, timeline, invoices, warranties } = useDealerStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const { customers, timeline, invoices } = useDealerStore();
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [selectedId, setSelectedId] = useState(initialId);
+  const selectedCustomer = customers.find(c => c.id === selectedId);
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [isWhatsAppOpen, setIsWhatsAppOpen] = useState(false);
   const [isLedgerOpen, setIsLedgerOpen] = useState(false);
@@ -59,12 +70,6 @@ export default function CustomersPage() {
     if (!selectedCustomer) return [];
     return invoices.filter((i) => i.customerId === selectedCustomer.id);
   }, [invoices, selectedCustomer]);
-
-  // Selected customer warranties
-  const customerWarranties = useMemo(() => {
-    if (!selectedCustomer) return [];
-    return warranties.filter((w) => w.customerId === selectedCustomer.id);
-  }, [warranties, selectedCustomer]);
 
   // Selected customer total balance due
   const customerTotalDue = useMemo(() => {
@@ -137,7 +142,7 @@ export default function CustomersPage() {
               return (
                 <div
                   key={cust.id}
-                  onClick={() => setSelectedCustomer(cust)}
+                  onClick={() => setSelectedId(cust.id)}
                   className={`card-apple p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer transition-all ${
                     isSelected ? 'ring-2 ring-brand-900 border-brand-900 bg-brand-50/20' : 'hover:border-slate-300'
                   }`}
@@ -192,7 +197,7 @@ export default function CustomersPage() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedCustomer(cust);
+                        setSelectedId(cust.id);
                       }}
                       className="p-2 rounded-xl text-slate-400 hover:text-brand-900 hover:bg-slate-100 transition-colors"
                       title="View 360 profile"
@@ -207,19 +212,20 @@ export default function CustomersPage() {
         </div>
 
         {/* 360-Degree Profile Drawer (Sticky on Right) */}
-        <div className="lg:col-span-1">
+        <div className={selectedCustomer ? "order-first lg:order-none lg:col-span-1" : "lg:col-span-1"}>
           {selectedCustomer ? (
             <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-card sticky top-24 space-y-6 animate-in fade-in duration-150">
               
               <div className="flex items-start justify-between border-b border-slate-100 pb-4">
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">{selectedCustomer.name}</h3>
-{can("service.read")&&<><Link className="ws-history-link" href={`/service?customer=${selectedCustomer.id}`}>Open workshop →</Link><CustomerHistory id={selectedCustomer.id}/></>}
+
                   <div className="text-xs text-slate-500 mt-0.5">📞 {selectedCustomer.phone}</div>
                   <div className="text-xs text-slate-500">📍 Village: {selectedCustomer.village}</div>
                 </div>
                 <button
-                  onClick={() => setSelectedCustomer(null)}
+                  aria-label="Close customer profile"
+                  onClick={() => setSelectedId('')}
                   className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
                 >
                   <X className="w-4 h-4" />
@@ -303,28 +309,7 @@ export default function CustomersPage() {
                 )}
               </div>
 
-              {/* Warranties */}
-              <div>
-                <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-                  Active Warranties ({customerWarranties.length})
-                </h4>
-                {customerWarranties.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">No warranty cards issued.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {customerWarranties.map((w) => (
-                      <div key={w.id} className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-100 text-xs">
-                        <div className="font-semibold text-slate-900">Serial: {w.serialNo}</div>
-                        <div className="text-[11px] text-slate-600 mt-0.5">
-                          Valid until: {w.endDate} &bull; Invoice: {w.invoiceNo}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
+{can("service.read")&&<><Link className="ws-history-link" href={`/service?customer=${selectedCustomer.id}`}>Open workshop →</Link><CustomerHistory id={selectedCustomer.id}/></>}
               {/* Timeline Feed */}
               <div>
                 <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">

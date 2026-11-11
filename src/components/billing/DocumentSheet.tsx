@@ -20,9 +20,10 @@ export function DocumentSheet({ doc }: { doc: BillingDocument }) {
           )}
         </div>
         <div className="print-title">
-          <h2>{doc.kind === 'invoice' ? 'INVOICE' : 'QUOTATION'}</h2>
+          <h2>{doc.cancelled_at ? 'CANCELLED INVOICE' : doc.kind === 'invoice' ? 'INVOICE' : 'QUOTATION'}</h2>
           <strong>{doc.number}</strong>
           <p>Date: {doc.document_date}</p>
+          {doc.cancelled_at && <p><strong>Cancelled on {new Date(doc.cancelled_at).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</strong></p>}
           {doc.valid_until && <p>Valid until: {doc.valid_until}</p>}
         </div>
       </header>
@@ -97,7 +98,7 @@ export function DocumentSheet({ doc }: { doc: BillingDocument }) {
               <p className="preserve-lines">{seller.terms}</p>
             </>
           )}
-          {seller.bank_details && (
+          {!doc.cancelled_at && seller.bank_details && (
             <>
               <h3>PAYMENT DETAILS</h3>
               <p className="preserve-lines">{seller.bank_details}</p>
@@ -132,11 +133,11 @@ export function DocumentSheet({ doc }: { doc: BillingDocument }) {
           )}
 
           <p className="total">
-            <span>Grand total</span>
+            <span>{doc.cancelled_at ? 'Original total' : 'Grand total'}</span>
             <strong>{money(doc.total)}</strong>
           </p>
 
-          {doc.kind === 'invoice' && (
+          {doc.kind === 'invoice' && !doc.cancelled_at && (
             <>
               <p>
                 <span>Amount paid</span>

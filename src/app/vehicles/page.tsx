@@ -1,7 +1,8 @@
 'use client';
 import { ExportLink } from '@/components/vehicles/ExportLink';
 import Link from 'next/link';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth/provider';
 import {
   label,
@@ -23,9 +24,16 @@ const initialFilters = {
 const size = 25;
 
 export default function VehiclesPage() {
+  return <Suspense><VehicleRoute /></Suspense>;
+}
+function VehicleRoute() {
+  const status = useSearchParams().get('status') || '';
+  return <Register key={status} status={lifecycles.includes(status) ? status : ''} />;
+}
+function Register({ status }: { status: string }) {
   const { can } = useAuth();
   const [q, setQ] = useState('');
-  const [filters, setFilters] = useState(initialFilters);
+  const [filters, setFilters] = useState({ ...initialFilters, status });
   const [offset, setOffset] = useState(0);
   const result = useVehicleQuery<VehicleRow[]>(
     'vehicle_register_list',

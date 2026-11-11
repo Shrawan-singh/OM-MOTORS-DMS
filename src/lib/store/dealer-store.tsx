@@ -21,9 +21,6 @@ import type {
   Quotation,
   Invoice,
   Payment,
-  ServiceJob,
-  PDICheck,
-  Warranty,
   CustomerTimelineEvent,
   ItemType,
   CustomerAsset,
@@ -52,9 +49,6 @@ type State = {
   quotations: Quotation[];
   invoices: Invoice[];
   payments: Payment[];
-  serviceJobs: ServiceJob[];
-  pdiChecks: PDICheck[];
-  warranties: Warranty[];
   timeline: CustomerTimelineEvent[];
   movements: Row[];
   collectionFollowups: CollectionFollowup[];
@@ -74,9 +68,6 @@ const empty: State = {
   quotations: [],
   invoices: [],
   payments: [],
-  serviceJobs: [],
-  pdiChecks: [],
-  warranties: [],
   timeline: [],
   movements: [],
   collectionFollowups: [],
@@ -197,9 +188,6 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
         profile,
         inventory,
         payments,
-        jobs,
-        pdi,
-        warranties,
         timeline,
         movements,
         followups,
@@ -217,9 +205,6 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
         fetchRows('business_profile', true),
         fetchRows('inventory', can('inventory.read')),
         fetchRows('billing_payments', can('invoices.read')),
-        Promise.resolve([] as Row[]),
-        Promise.resolve([] as Row[]),
-        Promise.resolve([] as Row[]),
         fetchRows('customer_timeline', can('customers.read')),
         fetchRows('stock_movements', can('inventory.read')),
         fetchRows('collection_followups', can('invoices.read') || can('customers.read')).catch(
@@ -328,44 +313,6 @@ export function DealerStoreProvider({ children }: { children: React.ReactNode })
         referenceNo: p.reference_no,
         paidAt: p.paid_at,
         receivedByName: p.received_by,
-      }));
-
-      next.serviceJobs = jobs.map((j) => ({
-        id: j.id,
-        vehicleId: j.vehicle_id,
-        vehicleName: j.vehicle_name || '',
-        chassisNo: j.chassis_no || '',
-        customerId: j.customer_id,
-        customerName: j.customer_name || '',
-        customerPhone: j.customer_phone || '',
-        jobType: j.job_type,
-        status: j.status,
-        scheduledDate: j.scheduled_date,
-        notes: j.notes,
-      }));
-
-      next.pdiChecks = pdi.map((p) => ({
-        id: p.id,
-        vehicleId: p.vehicle_id,
-        vehicleName: p.vehicle_name || '',
-        chassisNo: p.chassis_no || '',
-        saleId: p.sale_id,
-        passed: p.passed,
-        checklist: p.checklist,
-      }));
-
-      next.warranties = warranties.map((w) => ({
-        id: w.id,
-        itemType: w.item_type,
-        itemId: w.item_id,
-        serialNo: w.serial_no || '',
-        customerId: w.customer_id,
-        customerName: customers.find((c) => c.id === w.customer_id)?.name || '',
-        invoiceNo: w.invoice_no || '',
-        startDate: w.start_date,
-        endDate: w.end_date,
-        status:
-          w.end_date < new Date().toISOString().slice(0, 10) ? 'expired' : 'active',
       }));
 
       next.timeline = timeline.map((t) => ({

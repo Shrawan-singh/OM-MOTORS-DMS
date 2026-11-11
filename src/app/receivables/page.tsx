@@ -1,8 +1,10 @@
 'use client';
+import { PaymentAmount } from '@/components/billing/PaymentAmount';
 import { ExportLink } from '@/components/vehicles/ExportLink';
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Receipt,
   Search,
@@ -39,6 +41,13 @@ import { FollowupModal } from '@/components/receivables/FollowupModal';
 import { CustomerLedgerModal } from '@/components/receivables/CustomerLedgerModal';
 
 export default function ReceivablesPage() {
+  return <React.Suspense><ReceivablesRoute /></React.Suspense>;
+}
+function ReceivablesRoute() {
+  const dueToday = useSearchParams().get('view') === 'today';
+  return <Collections key={String(dueToday)} dueToday={dueToday} />;
+}
+function Collections({ dueToday }: { dueToday: boolean }) {
   const {
     documents,
     customers,
@@ -51,10 +60,10 @@ export default function ReceivablesPage() {
   } = useDealerStore();
   const { can } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'aging' | 'customers' | 'ptp'>('aging');
+  const [activeTab, setActiveTab] = useState<'aging' | 'customers' | 'ptp'>(dueToday ? 'ptp' : 'aging');
   const [searchQuery, setSearchQuery] = useState('');
   const [bucketFilter, setBucketFilter] = useState<string>('all');
-  const [ptpFilter, setPtpFilter] = useState<string>('pending');
+  const [ptpFilter, setPtpFilter] = useState<string>(dueToday ? 'today' : 'pending');
 
   // Modals state
   const [paymentTarget, setPaymentTarget] = useState<BillingDocument | null>(null);
@@ -236,13 +245,15 @@ export default function ReceivablesPage() {
   }, [documents, customers, searchQuery, bucketFilter]);
 
   // Followups list for Tab 3
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   const filteredFollowups = useMemo(() => {
     return collectionFollowups.filter((f) => {
+      if (ptpFilter === 'today') return f.status === 'pending' && f.ptp_date === today;
       if (ptpFilter === 'pending') return f.status === 'pending';
       if (ptpFilter === 'all') return true;
       return f.status === ptpFilter;
     }).sort((a, b) => (b.ptp_date || b.contacted_at).localeCompare(a.ptp_date || a.contacted_at));
-  }, [collectionFollowups, ptpFilter]);
+  }, [collectionFollowups, ptpFilter, today]);
 
   // Payment Handler
   async function handleRecordPayment(e: React.FormEvent) {
@@ -539,7 +550,8 @@ export default function ReceivablesPage() {
                               <button
                                 onClick={() => {
                                   setPaymentTarget(inv);
-                                  setPayAmount(String(inv.balance_due));
+                                  setPayAmount('');
+                                  setPayMethod('upi');
                                   setPayRequestId(crypto.randomUUID());
                                   setPayRef('');
                                   setPayError('');
@@ -740,6 +752,7 @@ export default function ReceivablesPage() {
                 onChange={(e) => setPtpFilter(e.target.value)}
                 className="py-1.5 px-3 text-xs rounded-xl border border-slate-200 bg-white"
               >
+                <option value="today">Aaj ke pending waade</option>
                 <option value="pending">Pending Promises</option>
                 <option value="honoured">Honoured</option>
                 <option value="broken">Broken Promises</option>
@@ -866,20 +879,7 @@ export default function ReceivablesPage() {
             )}
 
             <div className="space-y-3 text-xs">
-              <label className="block">
-                <span className="font-semibold text-slate-700">Amount to Receive (₹) *</span>
-                <input
-                  required
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  max={paymentTarget.total - paymentTarget.amount_paid}
-                  value={payAmount}
-                  onChange={(e) => setPayAmount(e.target.value)}
-                  className="w-full p-2.5 mt-1 border border-slate-200 rounded-xl font-mono text-sm"
-                />
-              </label>
-
+            <PaymentAmount due={paymentTarget.total - paymentTarget.amount_paid} amount={payAmount} onChange={setPayAmount} />
               <label className="block">
                 <span className="font-semibold text-slate-700">Payment Method</span>
                 <select

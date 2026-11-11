@@ -61,7 +61,7 @@ export function QuickGlobalSearch({ isOpen, onClose }: QuickGlobalSearchProps) {
           id: c.id,
           title: c.name,
           detail: c.phone,
-          url: `/customers?search=${encodeURIComponent(c.phone)}`,
+          url: `/customers?id=${encodeURIComponent(c.id)}`,
         })),
     },
     {

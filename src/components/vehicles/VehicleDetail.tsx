@@ -1,6 +1,7 @@
 'use client';
 import { ExportLink } from '@/components/vehicles/ExportLink';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth/provider';
 import { VehicleActions } from './VehicleActions';
 import { label, useVehicleQuery, type Detail, type DetailRow } from '@/lib/vehicles/register';
 
@@ -93,6 +94,7 @@ function History({ name, rows }: { name: string; rows: DetailRow[] | null }) {
 }
 
 export function VehicleDetail({ vehicleId }: { vehicleId: string }) {
+  const { can } = useAuth();
   const query = useVehicleQuery<Detail>('vehicle_360', { vehicle_id: vehicleId });
   const record = query.data;
   if (query.error)
@@ -134,6 +136,13 @@ export function VehicleDetail({ vehicleId }: { vehicleId: string }) {
           Print vehicle card
         </Link>
       </header>
+      {can('service.read') && can('pdi.read') && ['pdi_pending','pdi_failed','pdi_issues'].includes(vehicle.lifecycle) && (
+        <Link className="primary-button" href={`/service?tab=pdi&vehicle=${vehicleId}`}>Is gaadi ki PDI kholein</Link>
+      )}
+      {can('service.read') && can('delivery.read') && vehicle.lifecycle === 'sold' && (
+        <Link className="primary-button" href={`/service?tab=delivery&vehicle=${vehicleId}`}>Delivery checklist kholein</Link>
+      )}
+      <VehicleActions key={String(vehicle.updated_at)} record={record} reload={query.retry} />
       <section className="admin-panel">
         <h2 className="font-semibold mb-3">Vehicle details</h2>
         <Facts row={Object.fromEntries(fields.map((k) => [k, vehicle[k]]))} />
@@ -144,7 +153,7 @@ export function VehicleDetail({ vehicleId }: { vehicleId: string }) {
           <Facts row={record.specs} />
         </section>
       )}
-      <VehicleActions key={String(vehicle.updated_at)} record={record} reload={query.retry} />
+
       <History name="Components" rows={record.components} />
       <History name="Registration history" rows={record.registrations} />
       <History name="Ownership history" rows={record.ownership} />

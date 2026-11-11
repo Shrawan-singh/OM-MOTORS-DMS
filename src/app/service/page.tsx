@@ -1,5 +1,6 @@
 'use client';
-import {useCallback,useEffect,useState} from 'react';
+import {Suspense,useCallback,useEffect,useRef,useState} from 'react';
+import {useSearchParams} from 'next/navigation';
 import Link from 'next/link';
 import {Wrench,Plus,Search,RefreshCw,X,ArrowUpRight,ClipboardCheck,ShieldCheck} from 'lucide-react';
 import {supabase} from '@/lib/supabase/client';
@@ -10,12 +11,55 @@ import {JobCard} from '@/components/workshop/JobCard';
 import {RecordEditor} from '@/components/workshop/RecordEditor';
 import {Badge} from '@/components/workshop/Fields';
 const tabs=[['dashboard','Service dashboard'],['jobs','Service jobs'],['cards','Job cards'],['technicians','Technicians'],['invoices','Service invoices'],['history','Service history'],['pdi','PDI'],['intake','Vehicle intake'],['delivery','Vehicle delivery'],['warranty','Warranty lookup'],['claims','Warranty claims'],['templates','Checklist templates']];
-export default function Service(){
+export default function Service() {
+ return <Suspense><WorkshopRoute /></Suspense>;
+}
+function WorkshopRoute() {
+ const search = useSearchParams().toString();
+ const { email, role, permissions } = useAuth();
+ return <Workshop key={JSON.stringify([search,email,role,permissions])} search={search} />;
+}
+function Workshop({search}:{search:string}) {
  const {can,role,permissions}=useAuth();const [data,setData]=useState<WorkshopData>(emptyWorkshop),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[tab,setTab]=useState('dashboard'),[query,setQuery]=useState(''),[filter,setFilter]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[page,setPage]=useState(1),[selected,setSelected]=useState<{entity:string;row:Row}|null>(null);
  const permissionKey=permissions.join('|');
  const load=useCallback(async()=>{if(!role)return;setLoading(true);try{const {data,error}=await supabase!.rpc('ws_snapshot');if(error)throw new Error(error.code==='PGRST202'?'Workshop setup is required. Apply UPGRADE_WORKSHOP.sql in Supabase, then refresh.':error.message);setData(data as WorkshopData);setError('');return data as WorkshopData}catch(e:any){setData(emptyWorkshop);setError(e.message)}finally{setLoading(false)}},[role,permissionKey]);
- useEffect(()=>{setSelected(null);void load();const jobId=new URLSearchParams(window.location.search).get('job');if(jobId)setSelected({entity:'job',row:{id:jobId}})},[load]);
- useEffect(()=>{const search=new URLSearchParams(window.location.search);if(search.get('job'))setSelected({entity:'job',row:{id:search.get('job')}});if(search.get('customer')){setTab('history');setQuery(search.get('customer')||'')}},[]);
+ const opened = useRef(false);
+ useEffect(() => { void load(); }, [load]);
+ useEffect(() => {
+   if (opened.current || loading || error || !role) return;
+   opened.current = true;
+   const params = new URLSearchParams(search);
+   const jobId = params.get('job');
+   const customerId = params.get('customer');
+   const section = params.get('tab');
+   const vehicleId = params.get('vehicle');
+   if (jobId) {
+     const job = data.jobs.find(j => j.id === jobId);
+     if (job) setSelected({ entity: 'job', row: job });
+     else setNotice('Yeh job is account mein nahi mili.');
+   } else if (customerId) {
+     setTab('history');
+     setQuery(customerId);
+   } else if ((section === 'pdi' || section === 'delivery') && can(section + '.read')) {
+     setTab(section);
+     if (!vehicleId) {
+       if (section === 'pdi' && params.get('status') === 'pending') setFilter('pending');
+       return;
+     }
+     const vehicle = data.vehicles.find(v => v.id === vehicleId);
+     if (!vehicle) { setNotice('Yeh chassis is account mein nahi mila.'); return; }
+     setQuery(vehicle.chassis_no);
+     const rows = section === 'pdi' ? data.pdi : data.deliveries;
+     const record = rows.find(r => r.vehicle_id === vehicleId);
+     if (record) setSelected({ entity: section, row: record });
+     else if (section === 'delivery' && can('delivery.write') && vehicle.lifecycle === 'sold' &&
+       data.invoices.some(b => b.id === vehicle.purchase_invoice_id && !b.cancelled_at)) {
+       setSelected({ entity: 'delivery', row: { vehicle_id: vehicle.id, invoice_id: vehicle.purchase_invoice_id } });
+     } else if (section === 'pdi' && can('pdi.write') && vehicle.lifecycle === 'pdi_pending') {
+       setSelected({ entity: 'pdi', row: { pdi_mode: 'existing', vehicle_id: vehicle.id } });
+     } else setNotice('Is chassis ke liye koi checklist uplabdh nahi hai.');
+   }
+ }, [loading,error,role,data,can,search]);
  useEffect(()=>{setPage(1)},[tab,query,filter,from,to]);
  useEffect(()=>{if(!selected)return;const esc=(e:KeyboardEvent)=>{if(e.key==='Escape'&&confirm('Close this record? Unsaved changes will be lost.'))setSelected(null)};window.addEventListener('keydown',esc);return()=>window.removeEventListener('keydown',esc)},[selected]);
  async function run(name:string,args:Row){const {data,error}=await supabase!.rpc(name,args);if(error)throw new Error(error.message);await load();setNotice('Saved successfully.');return data}

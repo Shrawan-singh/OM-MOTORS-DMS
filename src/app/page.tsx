@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useVehicleQuery } from '@/lib/vehicles/register';
+import type { WorkshopData } from '@/lib/workshop/types';
 import { useDealerStore } from '@/lib/store/dealer-store';
 import { useAuth } from '@/lib/auth/provider';
 import { money, getDaysOverdue } from '@/lib/billing/types';
@@ -15,19 +17,25 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
-const moduleLinks = [
-  ['catalogue', 'Product catalogue', BookOpen],
-  ['customers', 'Customers', Users],
-  ['inventory', 'Inventory', Package],
-  ['quotations', 'Quotations', FileText],
-  ['invoices', 'Invoices & payments', Receipt],
-  ['receivables', 'Receivables & collections', CreditCard],
-  ['service', 'Service & PDI', Wrench],
+const tasks = [
+  ['vehicles.write', '/vehicles/receive', 'Receive vehicle', 'Nayi gaadi aur chassis darj karein', Package],
+  ['pdi.read', '/service?tab=pdi&status=pending', 'Pending PDI', 'Jaanch ke liye taiyar gaadiyan dekhein', Wrench],
+  ['customers.read', '/customers', 'Customer khojein', 'Mobile ya naam se buyer ka record kholein', Users],
+  ['quotations.write', '/quotations/new', 'Quotation banayein', 'Buyer ko estimate dein', FileText],
+  ['invoices.write', '/invoices/new', 'Sale invoice banayein', 'Buyer aur chassis ko bill se jodein', Receipt],
+  ['invoices.write', '/receivables', 'Payment darj karein', 'Bill chunein aur mili hui rakam bharein', CreditCard],
+  ['invoices.read', '/receivables?view=today', 'Aaj ke follow-ups', 'Aaj ke payment waade dekhein', CreditCard],
+  ['delivery.read', '/vehicles?status=sold', 'Delivery karein', 'Biki hui gaadi ka handover kholein', Package],
+  ['vehicles.read', '/vehicles', 'Vehicle register', 'Chassis, parts aur RC dekhein', BookOpen],
+  ['inventory.read', '/inventory', 'Inventory', 'Parts receive karein aur stock milayein', Package],
+  ['catalogue.read', '/catalogue', 'Product catalogue', 'Model, variant aur daam dekhein', BookOpen],
+  ['service.read', '/service', 'Service & PDI', 'Workshop ke jobs aur warranty dekhein', Wrench],
 ] as const;
 
 export default function Dashboard() {
-  const { customers, documents, products, inventory, serviceJobs } = useDealerStore();
+  const { customers, documents } = useDealerStore();
   const { can } = useAuth();
+  const workshop = useVehicleQuery<WorkshopData>('ws_snapshot', {}, 0, can('service.read'));
 
   const invoices = documents.filter((d) => d.kind === 'invoice');
   const unpaid = invoices.filter((i) => i.total > i.amount_paid);
@@ -51,13 +59,8 @@ export default function Dashboard() {
         <div>
           <p className="eyebrow">OM MOTORS WORKSPACE</p>
           <h1>Dealership overview</h1>
-          <p>Your saved dealership records, connected through Supabase.</p>
+          <p>Showroom mein aaj ka kaam chunein.</p>
         </div>
-        {can('quotations.write') && (
-          <Link className="primary-button" href="/quotations/new">
-            New quotation
-          </Link>
-        )}
       </div>
 
       {/* Stats row */}
@@ -89,26 +92,22 @@ export default function Dashboard() {
 
       {/* Module links grid */}
       <div className="products-grid">
-        {moduleLinks
-          .filter(([key]) => can(key === 'receivables' ? 'invoices.read' : `${key}.read`))
-          .map(([key, label, Icon]) => (
-            <Link href={`/${key}`} key={key} className="admin-panel dashboard-link">
+        {tasks.filter(([permission, href]) => can(permission)
+          && (!href.startsWith('/service?') || can('service.read'))
+          && (href !== '/vehicles?status=sold' || can('vehicles.read'))
+          && (href !== '/receivables' || can('invoices.read')))
+          .map(([, href, title, description, Icon]) => (
+          <div key={href} className="admin-panel dashboard-link">
+            <Link href={href} className="block">
               <Icon size={24} />
-              <h2>{label}</h2>
-              <p>
-                {key === 'catalogue'
-                  ? `${products.length} catalogue variants`
-                  : key === 'inventory'
-                    ? `${inventory.length} stock records`
-                    : key === 'service'
-                      ? `${serviceJobs.length} service jobs`
-                      : key === 'receivables'
-                        ? `${unpaid.length} unpaid invoices (${money(overdueTotal)} overdue)`
-                        : 'Open workspace'}{' '}
-                →
-              </p>
+              <h2>{title}</h2>
+              <p>{description}</p>
             </Link>
-          ))}
+            {href === '/service' && (workshop.error
+              ? <p role="alert">Job count load nahi hua. <button onClick={workshop.retry}>Dobara load karein</button></p>
+              : <p role="status">{workshop.data ? workshop.data.jobs.length + ' service jobs' : 'Jobs load ho rahe hain…'}</p>)}
+          </div>
+        ))}
       </div>
 
       {/* Recent documents */}

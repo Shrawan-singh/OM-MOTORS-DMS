@@ -31,6 +31,7 @@ export const roleLabels: Record<string, string> = {
 };
 
 export function routeModule(path: string): string {
+  if (path === '/receivables') return 'invoices';
   if (path.startsWith('/database') || path === '/export' || path === '/api/export') return 'vehicles';
   return path === '/' ? 'dashboard' : path.split('/')[1];
 }

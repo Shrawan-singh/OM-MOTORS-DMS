@@ -49,7 +49,7 @@ export function DocumentEditor(props: EditorProps) {
   const { email } = useAuth();
   const query = useSearchParams();
   const context = [props.kind, props.id || 'new', email, query.get('from'),
-    query.get('customerId'), query.get('productId') || query.get('vehicleId')];
+    query.get('customerId'), query.get('productId') || query.get('vehicleId'), query.get('chassis')];
   const key = 'om.billing.draft.v1:' + JSON.stringify(context);
   return <Editor key={key} {...props} draftKey={!props.id && email ? key : null} />;
 }
@@ -167,6 +167,7 @@ function Editor({ kind, id, draftKey }: EditorProps & { draftKey: string | null 
       {
         ...blank(),
         productId: p.id,
+        chassisNo: query.get('chassis') || undefined,
         inventoryId: store.inventory.find((i) => i.itemId === p.id)?.id || null,
         name: [p.brand, p.model_name, p.variant].filter(Boolean).join(' '),
         unitPrice: p.selling_price ?? '',

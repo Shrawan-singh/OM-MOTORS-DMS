@@ -43,3 +43,31 @@ const { routeModule } = load('src/lib/auth/permissions.ts');
 assert.equal(routeModule('/receivables'), 'invoices');
 assert.equal(routeModule('/admin'), 'admin');
 console.log('PASS: cancelled and active invoice printouts, partial-payment previews, manager receivables permission.');
+
+const permissions = new Set(['pdi.read', 'delivery.read', 'delivery.write', 'vehicles.write', 'invoices.write']);
+const { TodayWork } = load('src/components/workshop/TodayWork.tsx', {
+  ...billing,
+  '@/lib/auth/provider': { useAuth: () => ({ can: p => permissions.has(p) }) },
+  'next/link': { default: 'a' },
+});
+const queue = {
+  vehicles: [
+    { id: '1', chassis_no: 'CHECK-1', lifecycle: 'pdi_failed' },
+    { id: '2', chassis_no: 'SALE-2', lifecycle: 'available', product_id: 'model', stock_id: 'stock' },
+    { id: '3', chassis_no: 'SOLD-3', lifecycle: 'sold', purchase_invoice_id: 'bill' },
+    { id: '4', chassis_no: 'DONE-4', lifecycle: 'delivered' },
+  ],
+  pdi: [{ id: 'check', vehicle_id: '1', result: 'failed' }],
+  deliveries: [], customers: [], invoices: [{ id: 'bill', total: 500, amount_paid: 100 }],
+  jobs: [{ id: 'work', number: 'JOB-1', status: 'waiting_for_parts' }, { id: 'done', number: 'DONE-JOB', status: 'completed' }],
+};
+const renderQueue = () => renderToStaticMarkup(createElement(TodayWork, { data: queue, open() {} }));
+const pending = renderQueue();
+assert.match(pending, /dobara jaanch/);
+assert.match(pending, /chassis=SALE-2/);
+assert.match(pending, /₹400.00 baki/);
+assert.match(pending, /Part ka intezaar/);
+assert.doesNotMatch(pending, /DONE-4|DONE-JOB/);
+permissions.clear();
+assert.doesNotMatch(renderQueue(), /CHECK-1|SALE-2|SOLD-3/);
+console.log('PASS: showroom and repair queues use chassis, payment, job state and permissions.');

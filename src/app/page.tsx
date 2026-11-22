@@ -29,7 +29,7 @@ const tasks = [
   ['vehicles.read', '/vehicles', 'Vehicle register', 'Chassis, parts aur RC dekhein', BookOpen],
   ['inventory.read', '/inventory', 'Inventory', 'Parts receive karein aur stock milayein', Package],
   ['catalogue.read', '/catalogue', 'Product catalogue', 'Model, variant aur daam dekhein', BookOpen],
-  ['service.read', '/service', 'Service & PDI', 'Workshop ke jobs aur warranty dekhein', Wrench],
+  ['service.read', '/service', 'Aaj ka kaam · Service & PDI', 'PDI, delivery aur repair ke pending kaam kholein', Wrench],
 ] as const;
 
 export default function Dashboard() {

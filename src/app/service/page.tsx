@@ -2,15 +2,16 @@
 import {Suspense,useCallback,useEffect,useRef,useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import Link from 'next/link';
-import {Wrench,Plus,Search,RefreshCw,X,ArrowUpRight,ClipboardCheck,ShieldCheck} from 'lucide-react';
+import {Wrench,Plus,Search,RefreshCw,X,ArrowUpRight} from 'lucide-react';
 import {supabase} from '@/lib/supabase/client';
 import {useAuth} from '@/lib/auth/provider';
 import {Row,WorkshopData,emptyWorkshop,label,today,warrantyStatus} from '@/lib/workshop/types';
 import {money} from '@/lib/billing/types';
 import {JobCard} from '@/components/workshop/JobCard';
 import {RecordEditor} from '@/components/workshop/RecordEditor';
+import {TodayWork} from '@/components/workshop/TodayWork';
 import {Badge} from '@/components/workshop/Fields';
-const tabs=[['dashboard','Service dashboard'],['jobs','Service jobs'],['cards','Job cards'],['technicians','Technicians'],['invoices','Service invoices'],['history','Service history'],['pdi','PDI'],['intake','Vehicle intake'],['delivery','Vehicle delivery'],['warranty','Warranty lookup'],['claims','Warranty claims'],['templates','Checklist templates']];
+const tabs=[['dashboard','Workshop reports'],['jobs','Service jobs'],['cards','Job cards'],['technicians','Technicians'],['invoices','Service invoices'],['history','Service history'],['pdi','PDI'],['intake','Vehicle intake'],['delivery','Vehicle delivery'],['warranty','Warranty lookup'],['claims','Warranty claims'],['templates','Checklist templates']];
 export default function Service() {
  return <Suspense><WorkshopRoute /></Suspense>;
 }
@@ -20,7 +21,7 @@ function WorkshopRoute() {
  return <Workshop key={JSON.stringify([search,email,role,permissions])} search={search} />;
 }
 function Workshop({search}:{search:string}) {
- const {can,role,permissions}=useAuth();const [data,setData]=useState<WorkshopData>(emptyWorkshop),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[tab,setTab]=useState('dashboard'),[query,setQuery]=useState(''),[filter,setFilter]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[page,setPage]=useState(1),[selected,setSelected]=useState<{entity:string;row:Row}|null>(null);
+ const {can,role,permissions}=useAuth();const [data,setData]=useState<WorkshopData>(emptyWorkshop),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[tab,setTab]=useState('today'),[query,setQuery]=useState(''),[filter,setFilter]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState(''),[page,setPage]=useState(1),[selected,setSelected]=useState<{entity:string;row:Row}|null>(null);
  const permissionKey=permissions.join('|');
  const load=useCallback(async()=>{if(!role)return;setLoading(true);try{const {data,error}=await supabase!.rpc('ws_snapshot');if(error)throw new Error(error.code==='PGRST202'?'Workshop setup is required. Apply UPGRADE_WORKSHOP.sql in Supabase, then refresh.':error.message);setData(data as WorkshopData);setError('');return data as WorkshopData}catch(e:any){setData(emptyWorkshop);setError(e.message)}finally{setLoading(false)}},[role,permissionKey]);
  const opened = useRef(false);
@@ -81,11 +82,18 @@ function Workshop({search}:{search:string}) {
  const revenue=activeInvoices.reduce((sum,b)=>sum+Number(b.subtotal),0);
  const count=(s:string)=>data.jobs.filter(j=>j.status===s).length;
  const kpis=[['Open jobs',data.jobs.filter(j=>j.status!=='completed').length],['Assigned',count('assigned')],['Work in progress',count('work_in_progress')],['Waiting for parts',count('waiting_for_parts')],['Ready for delivery',count('ready_for_delivery')],['Completed this month',data.jobs.filter(j=>j.completed_date?.startsWith(today().slice(0,7))).length],['Warranty jobs',data.jobs.filter(j=>j.job_type==='Warranty').length],['Pending PDI',data.pdi.filter(p=>p.result==='pending').length],['PDI issues',data.pdi.filter(p=>['failed','issues'].includes(p.result)).length],...(can('service_finance.read')?[['Service revenue before GST',money(revenue)]]:[])];
- return <div className="ws-page"><header className="ws-header"><div><p className="eyebrow">OM MOTORS · WORKSHOP</p><h1>{role==='mechanic'?'My Service Jobs':'Service & PDI'}</h1><p>From vehicle arrival to the next service. Every job, inspection and claim in one place.</p></div><div className="ws-header-icon"><Wrench size={28}/></div></header>
- <div className="ws-toolbar ws-primary-actions">{can('service.write')&&<><button className="primary-button" onClick={()=>open('job')}><Plus size={16}/>New service job</button><button className="secondary-button" onClick={()=>open('vehicle',{intake:false})}>Register customer vehicle</button></>}{can('pdi.write')&&<button className="secondary-button" onClick={()=>open('pdi')}><ClipboardCheck size={16}/>New PDI</button>}<button className="secondary-button" onClick={()=>{setTab('warranty');setQuery('');setFilter('')}}><ShieldCheck size={16}/>Warranty lookup</button>{can('service_finance.write')&&<button className="secondary-button" onClick={()=>{setTab('jobs');setFilter('ready_for_delivery');setNotice('Open a ready job to review charges and finalize its service invoice.')}}>+ Service invoice</button>}<button className="ws-refresh" aria-label="Refresh workshop" disabled={loading} onClick={()=>void load()}><RefreshCw size={18}/></button></div>
+ return <div className="ws-page"><header className="ws-header"><div><p className="eyebrow">OM MOTORS · WORKSHOP</p><h1>{role==='mechanic'?'My Service Jobs':'Service & PDI'}</h1><p>Chassis ya job chunein aur pending kaam poora karein.</p></div><div className="ws-header-icon"><Wrench size={28}/></div></header>
+ <div className="ws-toolbar ws-primary-actions">
+ {can('vehicles.write') && <Link className="primary-button" href="/vehicles/receive">Stock receive karein</Link>}
+ {can('service.write') && <button className="primary-button" onClick={()=>open('job')}>Service shuru karein</button>}
+ {tab!=='today' && <button className="secondary-button" onClick={()=>setTab('today')}>Aaj ka kaam</button>}
+ <button className="ws-refresh" aria-label="Refresh workshop" disabled={loading} onClick={()=>void load()}><RefreshCw size={18}/></button>
+ </div>
  {error&&<div className="error-message" role="alert">{error}<button onClick={()=>void load()}> Retry</button></div>}{notice&&<div className="success-message" role="status">{notice}</div>}{loading&&<p role="status" className="ws-muted">Loading saved workshop records…</p>}
- <nav className="ws-tabs" aria-label="Workshop sections">{visibleTabs.map(([id,title])=><button key={id} aria-current={tab===id?'page':undefined} className={tab===id?'active':''} onClick={()=>{setTab(id);setQuery('');setFilter('');setFrom('');setTo('')}}>{title}</button>)}</nav>
- {tab==='dashboard'?<><div className="ws-kpis">{kpis.map(([title,value])=><div key={title}><span>{title}</span><strong>{value}</strong></div>)}</div><div className="ws-dashboard-grid">{[
+ <details className="ws-panel"><summary>Workshop registers aur reports</summary>
+ {can('service.write') && <button className="secondary-button" onClick={()=>open('vehicle',{intake:false})}>Register customer vehicle</button>}
+ <nav className="ws-tabs" aria-label="Workshop sections">{visibleTabs.map(([id,title])=><button key={id} aria-current={tab===id?'page':undefined} className={tab===id?'active':''} onClick={()=>{setTab(id);setQuery('');setFilter('');setFrom('');setTo('')}}>{title}</button>)}</nav></details>
+ {tab==='today' ? (!loading && !error && <TodayWork data={data} open={open}/>) : tab==='dashboard'?<><div className="ws-kpis">{kpis.map(([title,value])=><div key={title}><span>{title}</span><strong>{value}</strong></div>)}</div><div className="ws-dashboard-grid">{[
  ['Today’s jobs',data.jobs.filter(j=>j.received_at===today()||j.expected_date===today()),'job'],
  ['Waiting for delivery',data.jobs.filter(j=>['ready_for_delivery','paid'].includes(j.status)),'job'],
  ['Service reminders',data.jobs.filter(j=>j.next_service_date&&j.next_service_date<=new Date(Date.now()+30*86400000).toLocaleDateString('en-CA')),'job'],
